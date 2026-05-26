@@ -1,3 +1,4 @@
+using MokoIndustry.Foundation;
 using Unity.Entities;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ namespace MokoIndustry
         {
             var world = World.DefaultGameObjectInjectionWorld;
             var fixedGroup = world.GetExistingSystemManaged<FixedStepSimulationSystemGroup>();
-            fixedGroup.Timestep = 1.0f / 30.0f;
+            fixedGroup.Timestep = (float)FoundationConstants.TickDuration;
         }
     }
 }

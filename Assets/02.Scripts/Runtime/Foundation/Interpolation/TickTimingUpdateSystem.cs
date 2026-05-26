@@ -1,3 +1,4 @@
+using MokoIndustry.Foundation.Common;
 using MokoIndustry.Foundation.Tick;
 using Unity.Burst;
 using Unity.Entities;

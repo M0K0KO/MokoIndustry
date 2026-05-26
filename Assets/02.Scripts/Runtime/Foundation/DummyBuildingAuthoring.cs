@@ -1,4 +1,5 @@
 using MokoIndustry.Foundation.Build;
+using MokoIndustry.Foundation.Common;
 using Unity.Entities;
 using UnityEngine;
 
@@ -13,6 +14,12 @@ namespace MokoIndustry.Foundation
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
                 AddComponent<BuildableTag>(entity);
                 AddComponent(entity, new GridPosition { Cell = default });
+
+                AddComponent<NewlyBuiltTag>(entity);
+                SetComponentEnabled<NewlyBuiltTag>(entity, true);
+
+                AddComponent<PendingDestroyTag>(entity);
+                SetComponentEnabled<PendingDestroyTag>(entity, false);
             }
         }
     }

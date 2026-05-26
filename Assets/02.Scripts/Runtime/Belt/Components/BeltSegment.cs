@@ -1,4 +1,4 @@
-using MokoIndustry.Foundation;
+using MokoIndustry.Foundation.Common;
 using Unity.Collections;
 using Unity.Entities;
 

@@ -1,4 +1,4 @@
-using MokoIndustry.Belt;
+using MokoIndustry.Foundation.Common;
 using Unity.Mathematics;
 
 namespace MokoIndustry.Foundation.Input

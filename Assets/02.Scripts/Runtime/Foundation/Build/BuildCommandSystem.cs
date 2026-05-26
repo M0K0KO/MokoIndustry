@@ -1,4 +1,5 @@
 using MokoIndustry.Belt;
+using MokoIndustry.Foundation.Common;
 using MokoIndustry.Foundation.Grid;
 using MokoIndustry.Foundation.Input;
 using MokoIndustry.Foundation.Tick;
@@ -32,6 +33,9 @@ namespace MokoIndustry.Foundation.Build
             var bufferEntity = SystemAPI.GetSingletonEntity<InputBufferSingleton>();
             var buffer = SystemAPI.GetBuffer<InputBufferElement>(bufferEntity);
 
+            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                        .CreateCommandBuffer(state.WorldUnmanaged);
+
             if (buffer.Length > 0)
             {
                 UnityEngine.Debug.Log($"[Build] OnUpdate: Tick={tick.Current}, " +
@@ -43,38 +47,26 @@ namespace MokoIndustry.Foundation.Build
                 }
             }
 
-            var pending = new NativeList<InputCommand>(buffer.Length, Allocator.Temp);
-
             for (int i = buffer.Length - 1; i >= 0; i--)
             {
                 var cmd = buffer[i].Command;
 
-                if (cmd.TargetTick > tick.Current)
-                    continue;
-
+                if (cmd.TargetTick > tick.Current) continue;
                 buffer.RemoveAt(i);
 
                 if (cmd.TargetTick < tick.Current)
                 {
                     Debug.LogWarning(
-                        $"[Build] Stale command: TargetTick={cmd.TargetTick}, Current={tick.Current}");
+                        $"[Build] Stale: TargetTick={cmd.TargetTick}, Current={tick.Current}");
                     continue;
                 }
 
-                pending.Add(cmd);
+                Apply(ecb, cmd, in config, occupancy, in registry);
             }
-
-            for (int i = pending.Length - 1; i >= 0; i--)
-            {
-                var cmd = pending[i];
-                Apply(ref state, cmd, in config, in occupancy, in registry);
-            }
-
-            pending.Dispose();
         }
 
         private void Apply(
-            ref SystemState state,
+            EntityCommandBuffer ecb,
             in InputCommand cmd,
             in GridConfigSingleton config,
             in GridOccupancySingleton occupancy,
@@ -85,16 +77,16 @@ namespace MokoIndustry.Foundation.Build
             switch (cmd.Type)
             {
                 case CommandType.Build:
-                    DoBuild(ref state, cmd, in occupancy, in config, in registry);
+                    DoBuild(ecb, cmd, in occupancy, in config, in registry);
                     break;
                 case CommandType.Demolish:
-                    DoDemolish(ref state, cmd, in occupancy);
+                    DoDemolish(ecb, cmd, in occupancy);
                     break;
             }
         }
 
         private void DoBuild(
-            ref SystemState state,
+            EntityCommandBuffer ecb,
             in InputCommand cmd,
             in GridOccupancySingleton occupancy,
             in GridConfigSingleton gridConfig,
@@ -110,35 +102,34 @@ namespace MokoIndustry.Foundation.Build
             };
             if (prefab == Entity.Null) return;
 
-            var entity = state.EntityManager.Instantiate(prefab);
+            occupancy.Map.Add(cmd.Cell, Entity.Null);
 
-            state.EntityManager.SetComponentData(entity, new GridPosition { Cell = cmd.Cell });
-            state.EntityManager.SetComponentData(entity, LocalTransform.FromPositionRotation(
+            var entity = ecb.Instantiate(prefab);
+            ecb.SetComponent(entity, new GridPosition { Cell = cmd.Cell });
+            ecb.SetComponent(entity, LocalTransform.FromPositionRotation(
                 GridUtility.CellToWorld(cmd.Cell, gridConfig),
                 quaternion.RotateY(cmd.Direction.ToRadians())));
 
             if (cmd.Building == BuildingType.Belt)
             {
-                state.EntityManager.SetComponentData(entity, new BeltSegment
+                ecb.SetComponent(entity, new BeltSegment
                 {
                     Direction = cmd.Direction,
                     Slots = default,
                     Progress = 0f,
                 });
             }
-
-            occupancy.Map.Add(cmd.Cell, entity);
         }
 
         private void DoDemolish(
-            ref SystemState state,
+            EntityCommandBuffer ecb,
             in InputCommand cmd,
             in GridOccupancySingleton occupancy)
         {
             if (!occupancy.Map.TryGetValue(cmd.Cell, out var entity)) return;
-
-            state.EntityManager.DestroyEntity(entity);
             occupancy.Map.Remove(cmd.Cell);
+            if (entity != Entity.Null)
+                ecb.SetComponentEnabled<PendingDestroyTag>(entity, true);
         }
     }
 }

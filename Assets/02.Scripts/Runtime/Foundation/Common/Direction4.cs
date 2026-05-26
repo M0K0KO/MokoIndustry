@@ -1,6 +1,6 @@
 using Unity.Mathematics;
 
-namespace MokoIndustry.Foundation
+namespace MokoIndustry.Foundation.Common
 {
     public enum Direction4 : byte
     {

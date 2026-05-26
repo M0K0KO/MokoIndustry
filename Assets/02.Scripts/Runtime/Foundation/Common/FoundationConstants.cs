@@ -1,4 +1,4 @@
-namespace MokoIndustry.Foundation
+namespace MokoIndustry.Foundation.Common
 {
     public static class FoundationConstants
     {

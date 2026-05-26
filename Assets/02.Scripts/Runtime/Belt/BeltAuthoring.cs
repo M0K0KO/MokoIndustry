@@ -1,4 +1,4 @@
-using MokoIndustry.Foundation;
+using MokoIndustry.Foundation.Common;
 using MokoIndustry.Foundation.Build;
 using Unity.Entities;
 using UnityEngine;
@@ -20,6 +20,12 @@ namespace MokoIndustry.Belt
                     Slots     = default,
                     Progress  = 0f,
                 });
+
+                AddComponent<NewlyBuiltTag>(entity);
+                SetComponentEnabled<NewlyBuiltTag>(entity, true);
+
+                AddComponent<PendingDestroyTag>(entity);
+                SetComponentEnabled<PendingDestroyTag>(entity, false);
             }
         }
     }

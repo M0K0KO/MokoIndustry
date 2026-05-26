@@ -155,7 +155,10 @@ namespace MokoIndustry.Foundation.Input
                 }
             });
 
-            Debug.Log($"[Input] {type} at {cell}, TargetTick={targetTick}");
+            Debug.Log($"[Input] {type} ENQUEUE: " +
+                  $"TickAtEnqueue={tick.Current}, " +
+                  $"TargetTick={tick.Current + inputDelay + 1}, " +
+                  $"Frame={Time.frameCount}");
         }
 
         private bool TryGetPointerCell(out int2 cell)

@@ -90,3 +90,49 @@ flowchart TD
 - 현재 Frame이 Tick 사이 어디인지 계산
 - $\alpha$ = `(Time.time - lastTickTime) / TickDuration`
 - `LocalTransform.Position = lerp(Previous, Current, alpha`
+
+# 3. Folder / Namespace Structure
+
+```text  
+Assets/  
+└── Scripts/  
+├── Runtime/  
+│ ├── Foundation/ # Phase 0  
+│ │ ├── Tick/  
+│ │ │ ├── TickSingleton.cs  
+│ │ │ ├── TickAdvanceSystem.cs  
+│ │ │ └── TickFinalizeSystem.cs  
+│ │ │  
+│ │ ├── Grid/  
+│ │ │ ├── GridConfigSingleton.cs  
+│ │ │ ├── GridOccupancySingleton.cs  
+│ │ │ ├── GridPosition.cs  
+│ │ │ ├── GridConfigAuthoring.cs  
+│ │ │ └── GridUtility.cs  
+│ │ │  
+│ │ ├── Input/  
+│ │ │ ├── InputCommand.cs  
+│ │ │ ├── InputBufferSingleton.cs  
+│ │ │ ├── InputCollector.cs # Mono  
+│ │ │ └── CommandApplySystemGroup.cs  
+│ │ │  
+│ │ ├── Build/  
+│ │ │ ├── DummyBuildingTag.cs  
+│ │ │ └── BuildCommandSystem.cs  
+│ │ │  
+│ │ ├── Interpolation/  
+│ │ │ ├── InterpolationState.cs  
+│ │ │ └── TransformInterpolationSystem.cs  
+│ │ │  
+│ │ ├── Determinism/  
+│ │ │ ├── DeterminismHashSingleton.cs  
+│ │ │ └── DeterminismCheckSystem.cs  
+│ │ │  
+│ │ └── Bootstrap/  
+│ │ ├── GameBootstrap.cs # Mono, initial setup  
+│ │ └── FoundationSystemGroups.cs  
+│ │  
+│ └── Phase1Plus/ # Belt / Production / etc.  
+│  
+└── Authoring/  
+└── AuthoringComponents.cs # Baking components

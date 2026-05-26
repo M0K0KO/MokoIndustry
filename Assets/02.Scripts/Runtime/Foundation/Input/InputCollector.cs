@@ -30,12 +30,19 @@ namespace MokoIndustry.Foundation.Input
 
         private PlayerInput _inputActions;
 
+        private BuildingType currentBuilding = BuildingType.Dummy;
+        private Direction4 currentDirection = Direction4.East;
+
         private void Awake()
         {
             _inputActions = new PlayerInput();
 
             _inputActions.Gameplay.Build.performed += OnBuildPerformed;
             _inputActions.Gameplay.Demolish.performed += OnDemolishPerformed;
+
+            _inputActions.Gameplay.SelectDummy.performed += OnSelectDummyPerformed;
+            _inputActions.Gameplay.SelectBelt.performed += OnSelectBeltPerformed;
+            _inputActions.Gameplay.Rotate.performed += OnRotatePerformed;
         }
 
         private void OnEnable()
@@ -75,6 +82,10 @@ namespace MokoIndustry.Foundation.Input
             {
                 _inputActions.Gameplay.Build.performed -= OnBuildPerformed;
                 _inputActions.Gameplay.Demolish.performed -= OnDemolishPerformed;
+
+                _inputActions.Gameplay.SelectDummy.performed -= OnSelectDummyPerformed;
+                _inputActions.Gameplay.SelectBelt.performed -= OnSelectBeltPerformed;
+                _inputActions.Gameplay.Rotate.performed -= OnRotatePerformed;
 
                 _inputActions.Dispose();
                 _inputActions = null;
@@ -129,6 +140,15 @@ namespace MokoIndustry.Foundation.Input
             EnqueueCommand(CommandType.Demolish);
         }
 
+        private void OnSelectDummyPerformed(InputAction.CallbackContext ctx)
+            => currentBuilding = BuildingType.Dummy;
+
+        private void OnSelectBeltPerformed(InputAction.CallbackContext ctx)
+            => currentBuilding = BuildingType.Belt;
+
+        private void OnRotatePerformed(InputAction.CallbackContext ctx)
+            => currentDirection = (Direction4)(((byte)currentDirection + 1) & 0b11);
+
         private void EnqueueCommand(CommandType type)
         {
             if (!_ready) return;
@@ -148,6 +168,8 @@ namespace MokoIndustry.Foundation.Input
                 Command = new InputCommand
                 {
                     Type = type,
+                    Building = currentBuilding,
+                    Direction = currentDirection,
                     PlayerId = 0,
                     TargetTick = targetTick,
                     Cell = cell,

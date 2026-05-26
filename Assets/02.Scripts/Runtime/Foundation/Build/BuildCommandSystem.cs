@@ -1,8 +1,10 @@
+using MokoIndustry.Belt;
 using MokoIndustry.Foundation.Grid;
 using MokoIndustry.Foundation.Input;
 using MokoIndustry.Foundation.Tick;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -83,7 +85,7 @@ namespace MokoIndustry.Foundation.Build
             switch (cmd.Type)
             {
                 case CommandType.Build:
-                    DoBuild(ref state, cmd, in occupancy, in config, registry.DummyBuildingPrefab);
+                    DoBuild(ref state, cmd, in occupancy, in config, in registry);
                     break;
                 case CommandType.Demolish:
                     DoDemolish(ref state, cmd, in occupancy);
@@ -96,14 +98,34 @@ namespace MokoIndustry.Foundation.Build
             in InputCommand cmd,
             in GridOccupancySingleton occupancy,
             in GridConfigSingleton gridConfig,
-            Entity prefab)
+            in PrefabRegistrySingleton registry)
         {
             if (occupancy.Map.ContainsKey(cmd.Cell)) return;
 
+            Entity prefab = cmd.Building switch
+            {
+                BuildingType.Dummy => registry.DummyBuildingPrefab,
+                BuildingType.Belt => registry.BeltPrefab,
+                _ => Entity.Null,
+            };
+            if (prefab == Entity.Null) return;
+
             var entity = state.EntityManager.Instantiate(prefab);
+
             state.EntityManager.SetComponentData(entity, new GridPosition { Cell = cmd.Cell });
-            state.EntityManager.SetComponentData(entity, LocalTransform.FromPosition(
-                GridUtility.CellToWorld(cmd.Cell, gridConfig)));
+            state.EntityManager.SetComponentData(entity, LocalTransform.FromPositionRotation(
+                GridUtility.CellToWorld(cmd.Cell, gridConfig),
+                quaternion.RotateY(cmd.Direction.ToRadians())));
+
+            if (cmd.Building == BuildingType.Belt)
+            {
+                state.EntityManager.SetComponentData(entity, new BeltSegment
+                {
+                    Direction = cmd.Direction,
+                    Slots = default,
+                    Progress = 0f,
+                });
+            }
 
             occupancy.Map.Add(cmd.Cell, entity);
         }

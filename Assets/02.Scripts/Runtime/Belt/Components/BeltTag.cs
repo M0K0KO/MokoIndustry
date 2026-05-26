@@ -4,6 +4,6 @@ namespace MokoIndustry.Belt
 {
     public struct BeltTag : IComponentData
     {
-
+        
     }
 }

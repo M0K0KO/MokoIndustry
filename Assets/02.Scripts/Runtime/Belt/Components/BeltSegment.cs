@@ -1,3 +1,4 @@
+using MokoIndustry.Foundation;
 using Unity.Collections;
 using Unity.Entities;
 
@@ -5,7 +6,7 @@ namespace MokoIndustry.Belt
 {
     public struct BeltSegment : IComponentData
     {
-        public BeltDirection Direction;
+        public Direction4 Direction;
 
         public FixedList32Bytes<byte> Slots;
 

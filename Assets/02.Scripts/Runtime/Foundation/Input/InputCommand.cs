@@ -1,3 +1,4 @@
+using MokoIndustry.Belt;
 using Unity.Mathematics;
 
 namespace MokoIndustry.Foundation.Input
@@ -13,6 +14,8 @@ namespace MokoIndustry.Foundation.Input
     public struct InputCommand
     {
         public CommandType Type;
+        public BuildingType Building;
+        public Direction4 Direction;
         public byte PlayerId;       // For Multiplayer Feature
         public int TargetTick;      
         public int2 Cell;           // TargetCell

@@ -208,6 +208,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dummyBuildingPrefab: {fileID: 2399893775034728678, guid: f33f948a242d4ca48b80cce858f2b3eb, type: 3}
+  beltPrefab: {fileID: 5557673119973871691, guid: e2dbcafdf6196354a8c7b38e0fd61179, type: 3}
 --- !u!1 &757201701
 GameObject:
   m_ObjectHideFlags: 0

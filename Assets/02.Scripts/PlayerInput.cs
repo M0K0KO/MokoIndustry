@@ -118,6 +118,33 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""SelectDummy"",
+                    ""type"": ""Button"",
+                    ""id"": ""005dbfa2-ced0-41cc-a0f1-f02f5776d5ee"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SelectBelt"",
+                    ""type"": ""Button"",
+                    ""id"": ""072dd43b-d785-4e67-a550-69386c311dbd"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Rotate"",
+                    ""type"": ""Button"",
+                    ""id"": ""3e0e285c-33c1-4acd-a5fc-1f9cd7f1fc04"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -153,6 +180,39 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""PointerPosition"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""07ab5837-cacc-49c1-bd70-20b610d5acb9"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SelectDummy"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b7104b96-698c-4245-8ad1-f11e9269b41a"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SelectBelt"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e0d6457e-99bc-4352-933d-26f2102ef76f"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Rotate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -164,6 +224,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_Gameplay_Build = m_Gameplay.FindAction("Build", throwIfNotFound: true);
         m_Gameplay_Demolish = m_Gameplay.FindAction("Demolish", throwIfNotFound: true);
         m_Gameplay_PointerPosition = m_Gameplay.FindAction("PointerPosition", throwIfNotFound: true);
+        m_Gameplay_SelectDummy = m_Gameplay.FindAction("SelectDummy", throwIfNotFound: true);
+        m_Gameplay_SelectBelt = m_Gameplay.FindAction("SelectBelt", throwIfNotFound: true);
+        m_Gameplay_Rotate = m_Gameplay.FindAction("Rotate", throwIfNotFound: true);
     }
 
     ~@PlayerInput()
@@ -247,6 +310,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_Build;
     private readonly InputAction m_Gameplay_Demolish;
     private readonly InputAction m_Gameplay_PointerPosition;
+    private readonly InputAction m_Gameplay_SelectDummy;
+    private readonly InputAction m_Gameplay_SelectBelt;
+    private readonly InputAction m_Gameplay_Rotate;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -270,6 +336,18 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/PointerPosition".
         /// </summary>
         public InputAction @PointerPosition => m_Wrapper.m_Gameplay_PointerPosition;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/SelectDummy".
+        /// </summary>
+        public InputAction @SelectDummy => m_Wrapper.m_Gameplay_SelectDummy;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/SelectBelt".
+        /// </summary>
+        public InputAction @SelectBelt => m_Wrapper.m_Gameplay_SelectBelt;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/Rotate".
+        /// </summary>
+        public InputAction @Rotate => m_Wrapper.m_Gameplay_Rotate;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -305,6 +383,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @PointerPosition.started += instance.OnPointerPosition;
             @PointerPosition.performed += instance.OnPointerPosition;
             @PointerPosition.canceled += instance.OnPointerPosition;
+            @SelectDummy.started += instance.OnSelectDummy;
+            @SelectDummy.performed += instance.OnSelectDummy;
+            @SelectDummy.canceled += instance.OnSelectDummy;
+            @SelectBelt.started += instance.OnSelectBelt;
+            @SelectBelt.performed += instance.OnSelectBelt;
+            @SelectBelt.canceled += instance.OnSelectBelt;
+            @Rotate.started += instance.OnRotate;
+            @Rotate.performed += instance.OnRotate;
+            @Rotate.canceled += instance.OnRotate;
         }
 
         /// <summary>
@@ -325,6 +412,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @PointerPosition.started -= instance.OnPointerPosition;
             @PointerPosition.performed -= instance.OnPointerPosition;
             @PointerPosition.canceled -= instance.OnPointerPosition;
+            @SelectDummy.started -= instance.OnSelectDummy;
+            @SelectDummy.performed -= instance.OnSelectDummy;
+            @SelectDummy.canceled -= instance.OnSelectDummy;
+            @SelectBelt.started -= instance.OnSelectBelt;
+            @SelectBelt.performed -= instance.OnSelectBelt;
+            @SelectBelt.canceled -= instance.OnSelectBelt;
+            @Rotate.started -= instance.OnRotate;
+            @Rotate.performed -= instance.OnRotate;
+            @Rotate.canceled -= instance.OnRotate;
         }
 
         /// <summary>
@@ -386,5 +482,26 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnPointerPosition(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SelectDummy" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSelectDummy(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SelectBelt" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSelectBelt(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Rotate" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnRotate(InputAction.CallbackContext context);
     }
 }

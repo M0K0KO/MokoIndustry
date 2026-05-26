@@ -1,7 +1,10 @@
 using MokoIndustry.Foundation.Grid;
 using MokoIndustry.Foundation.Input;
 using MokoIndustry.Foundation.Tick;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Transforms;
+using UnityEngine;
 
 namespace MokoIndustry.Foundation.Build
 {
@@ -14,6 +17,7 @@ namespace MokoIndustry.Foundation.Build
             state.RequireForUpdate<GridConfigSingleton>();
             state.RequireForUpdate<GridOccupancySingleton>();
             state.RequireForUpdate<InputBufferSingleton>();
+            state.RequireForUpdate<PrefabRegistrySingleton>();
         }
 
         public void OnUpdate(ref SystemState state)
@@ -21,6 +25,7 @@ namespace MokoIndustry.Foundation.Build
             var tick = SystemAPI.GetSingleton<TickSingleton>();
             var config = SystemAPI.GetSingleton<GridConfigSingleton>();
             var occupancy = SystemAPI.GetSingleton<GridOccupancySingleton>();
+            var registry = SystemAPI.GetSingleton<PrefabRegistrySingleton>();
 
             var bufferEntity = SystemAPI.GetSingletonEntity<InputBufferSingleton>();
             var buffer = SystemAPI.GetBuffer<InputBufferElement>(bufferEntity);
@@ -36,43 +41,49 @@ namespace MokoIndustry.Foundation.Build
                 }
             }
 
-            int writeIdx = 0;
-            for (int readIdx = 0; readIdx < buffer.Length; readIdx++)
+            var pending = new NativeList<InputCommand>(buffer.Length, Allocator.Temp);
+
+            for (int i = buffer.Length - 1; i >= 0; i--)
             {
-                var cmd = buffer[readIdx].Command;
+                var cmd = buffer[i].Command;
 
                 if (cmd.TargetTick > tick.Current)
-                {
-                    buffer[writeIdx++] = buffer[readIdx];
                     continue;
-                }
+
+                buffer.RemoveAt(i);
 
                 if (cmd.TargetTick < tick.Current)
                 {
-                    UnityEngine.Debug.LogWarning($"[Build] Stale command: TargetTick={cmd.TargetTick}, Current={tick.Current}");
+                    Debug.LogWarning(
+                        $"[Build] Stale command: TargetTick={cmd.TargetTick}, Current={tick.Current}");
                     continue;
                 }
 
-                Apply(ref state, cmd, in config, in occupancy);
+                pending.Add(cmd);
             }
 
-            int removed = buffer.Length - writeIdx;
-            if (removed > 0)
-                buffer.Length = writeIdx;
+            for (int i = pending.Length - 1; i >= 0; i--)
+            {
+                var cmd = pending[i];
+                Apply(ref state, cmd, in config, in occupancy, in registry);
+            }
+
+            pending.Dispose();
         }
 
         private void Apply(
             ref SystemState state,
             in InputCommand cmd,
             in GridConfigSingleton config,
-            in GridOccupancySingleton occupancy)
+            in GridOccupancySingleton occupancy,
+            in PrefabRegistrySingleton registry)
         {
             if (!GridUtility.IsInBounds(cmd.Cell, in config)) return;
 
             switch (cmd.Type)
             {
                 case CommandType.Build:
-                    DoBuild(ref state, cmd, in occupancy);
+                    DoBuild(ref state, cmd, in occupancy, in config, registry.DummyBuildingPrefab);
                     break;
                 case CommandType.Demolish:
                     DoDemolish(ref state, cmd, in occupancy);
@@ -83,13 +94,16 @@ namespace MokoIndustry.Foundation.Build
         private void DoBuild(
             ref SystemState state,
             in InputCommand cmd,
-            in GridOccupancySingleton occupancy)
+            in GridOccupancySingleton occupancy,
+            in GridConfigSingleton gridConfig,
+            Entity prefab)
         {
             if (occupancy.Map.ContainsKey(cmd.Cell)) return;
 
-            var entity = state.EntityManager.CreateEntity();
-            state.EntityManager.AddComponent<DummyBuildingTag>(entity);
-            state.EntityManager.AddComponentData(entity, new GridPosition { Cell = cmd.Cell });
+            var entity = state.EntityManager.Instantiate(prefab);
+            state.EntityManager.SetComponentData(entity, new GridPosition { Cell = cmd.Cell });
+            state.EntityManager.SetComponentData(entity, LocalTransform.FromPosition(
+                GridUtility.CellToWorld(cmd.Cell, gridConfig)));
 
             occupancy.Map.Add(cmd.Cell, entity);
         }

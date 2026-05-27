@@ -3,6 +3,7 @@ using MokoIndustry.Foundation.Common;
 using MokoIndustry.Foundation.Grid;
 using MokoIndustry.Foundation.Input;
 using MokoIndustry.Foundation.Tick;
+using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -12,8 +13,10 @@ using UnityEngine;
 namespace MokoIndustry.Foundation.Build
 {
     [UpdateInGroup(typeof(CommandApplySystemGroup))]
+    [BurstCompile]
     public partial struct BuildCommandSystem : ISystem
     {
+        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<TickSingleton>();
@@ -23,6 +26,7 @@ namespace MokoIndustry.Foundation.Build
             state.RequireForUpdate<PrefabRegistrySingleton>();
         }
 
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var tick = SystemAPI.GetSingleton<TickSingleton>();
@@ -36,18 +40,8 @@ namespace MokoIndustry.Foundation.Build
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                         .CreateCommandBuffer(state.WorldUnmanaged);
 
+            state.EntityManager.CompleteDependencyBeforeRW<BeltSegment>();
             var beltLookup = SystemAPI.GetComponentLookup<BeltSegment>(false);
-
-            if (buffer.Length > 0)
-            {
-                UnityEngine.Debug.Log($"[Build] OnUpdate: Tick={tick.Current}, " +
-                                      $"BufferLen={buffer.Length}, " +
-                                      $"Frame={UnityEngine.Time.frameCount}");
-                for (int i = 0; i < buffer.Length; i++)
-                {
-                    UnityEngine.Debug.Log($"  [{i}] TargetTick={buffer[i].Command.TargetTick}");
-                }
-            }
 
             for (int i = buffer.Length - 1; i >= 0; i--)
             {
@@ -58,8 +52,6 @@ namespace MokoIndustry.Foundation.Build
 
                 if (cmd.TargetTick < tick.Current)
                 {
-                    Debug.LogWarning(
-                        $"[Build] Stale: TargetTick={cmd.TargetTick}, Current={tick.Current}");
                     continue;
                 }
 

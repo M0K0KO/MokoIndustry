@@ -9,6 +9,27 @@ namespace MokoIndustry.Belt
         public Entity Entity;
         public Direction4 Direction;
         public FixedList32Bytes<byte> Slots;
-        public float Progress;
+        public FixedList32Bytes<byte> SlotProgress;
+
+        public static BeltSnapshot From(Entity entity, in BeltSegment belt)
+        {
+            return new BeltSnapshot
+            {
+                Entity = entity,
+                Direction = belt.Direction,
+                Slots = belt.Slots,
+                SlotProgress = belt.SlotProgress
+            };
+        }
+
+        public ItemId GetSlot(int index)
+        {
+            return (ItemId)Slots[index];
+        }
+
+        public byte GetProgress(int index)
+        {
+            return SlotProgress[index];
+        }
     }
 }

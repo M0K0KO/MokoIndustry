@@ -36,6 +36,8 @@ namespace MokoIndustry.Foundation.Build
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                         .CreateCommandBuffer(state.WorldUnmanaged);
 
+            var beltLookup = SystemAPI.GetComponentLookup<BeltSegment>(false);
+
             if (buffer.Length > 0)
             {
                 UnityEngine.Debug.Log($"[Build] OnUpdate: Tick={tick.Current}, " +
@@ -61,7 +63,7 @@ namespace MokoIndustry.Foundation.Build
                     continue;
                 }
 
-                Apply(ecb, cmd, in config, occupancy, in registry);
+                Apply(ecb, cmd, in config, occupancy, in registry, ref beltLookup);
             }
         }
 
@@ -70,7 +72,8 @@ namespace MokoIndustry.Foundation.Build
             in InputCommand cmd,
             in GridConfigSingleton config,
             in GridOccupancySingleton occupancy,
-            in PrefabRegistrySingleton registry)
+            in PrefabRegistrySingleton registry, 
+            ref ComponentLookup<BeltSegment> beltLookup)
         {
             if (!GridUtility.IsInBounds(cmd.Cell, in config)) return;
 
@@ -81,6 +84,9 @@ namespace MokoIndustry.Foundation.Build
                     break;
                 case CommandType.Demolish:
                     DoDemolish(ecb, cmd, in occupancy);
+                    break;
+                case CommandType.DebugInject:
+                    DoDebugInject(cmd, occupancy, ref beltLookup);
                     break;
             }
         }
@@ -112,12 +118,7 @@ namespace MokoIndustry.Foundation.Build
 
             if (cmd.Building == BuildingType.Belt)
             {
-                ecb.SetComponent(entity, new BeltSegment
-                {
-                    Direction = cmd.Direction,
-                    Slots = default,
-                    Progress = 0f,
-                });
+                ecb.SetComponent(entity, BeltSegment.CreateEmpty(cmd.Direction));
             }
         }
 
@@ -130,6 +131,21 @@ namespace MokoIndustry.Foundation.Build
             occupancy.Map.Remove(cmd.Cell);
             if (entity != Entity.Null)
                 ecb.SetComponentEnabled<PendingDestroyTag>(entity, true);
+        }
+
+        private void DoDebugInject(
+            in InputCommand cmd,
+            GridOccupancySingleton occupancy,
+            ref ComponentLookup<BeltSegment> beltLookup)
+        {
+            if (!occupancy.Map.TryGetValue(cmd.Cell, out var entity)) return;
+            if (entity == Entity.Null) return;
+            if (!beltLookup.HasComponent(entity)) return;
+
+            ref var belt = ref beltLookup.GetRefRW(entity).ValueRW;
+
+            if (belt.GetSlot(BeltConstants.SlotCount - 1) == ItemId.None)
+                belt.SetItem(BeltConstants.SlotCount - 1, ItemId.Ore, 0);
         }
     }
 }

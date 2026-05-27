@@ -44,6 +44,8 @@ namespace MokoIndustry.Foundation.Input
             _inputActions.Gameplay.SelectDummy.performed += OnSelectDummyPerformed;
             _inputActions.Gameplay.SelectBelt.performed += OnSelectBeltPerformed;
             _inputActions.Gameplay.Rotate.performed += OnRotatePerformed;
+
+            _inputActions.Gameplay.DebugInject.performed += OnDebugInjectPerformed;
         }
 
         private void OnEnable()
@@ -87,6 +89,8 @@ namespace MokoIndustry.Foundation.Input
                 _inputActions.Gameplay.SelectDummy.performed -= OnSelectDummyPerformed;
                 _inputActions.Gameplay.SelectBelt.performed -= OnSelectBeltPerformed;
                 _inputActions.Gameplay.Rotate.performed -= OnRotatePerformed;
+
+                _inputActions.Gameplay.DebugInject.performed -= OnDebugInjectPerformed;
 
                 _inputActions.Dispose();
                 _inputActions = null;
@@ -149,6 +153,11 @@ namespace MokoIndustry.Foundation.Input
 
         private void OnRotatePerformed(InputAction.CallbackContext ctx)
             => currentDirection = (Direction4)(((byte)currentDirection + 1) & 0b11);
+
+        private void OnDebugInjectPerformed(InputAction.CallbackContext ctx)
+        {
+            EnqueueCommand(CommandType.DebugInject);
+        }
 
         private void EnqueueCommand(CommandType type)
         {

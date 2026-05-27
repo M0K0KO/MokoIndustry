@@ -7,7 +7,8 @@ namespace MokoIndustry.Foundation.Input
     {
         None,
         Build,
-        Demolish
+        Demolish,
+        DebugInject
         // There will be more of these CommandTypes (ex. Upgrade, PlayerMove etc...)
     }
 

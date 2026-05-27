@@ -145,6 +145,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DebugInject"",
+                    ""type"": ""Button"",
+                    ""id"": ""9f57d80b-d4d6-48f3-bbe8-3d11375cf221"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -213,6 +222,17 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""Rotate"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4323e802-b363-4857-b3aa-a88d4526199c"",
+                    ""path"": ""<Keyboard>/i"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DebugInject"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -227,6 +247,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_Gameplay_SelectDummy = m_Gameplay.FindAction("SelectDummy", throwIfNotFound: true);
         m_Gameplay_SelectBelt = m_Gameplay.FindAction("SelectBelt", throwIfNotFound: true);
         m_Gameplay_Rotate = m_Gameplay.FindAction("Rotate", throwIfNotFound: true);
+        m_Gameplay_DebugInject = m_Gameplay.FindAction("DebugInject", throwIfNotFound: true);
     }
 
     ~@PlayerInput()
@@ -313,6 +334,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_SelectDummy;
     private readonly InputAction m_Gameplay_SelectBelt;
     private readonly InputAction m_Gameplay_Rotate;
+    private readonly InputAction m_Gameplay_DebugInject;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -348,6 +370,10 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/Rotate".
         /// </summary>
         public InputAction @Rotate => m_Wrapper.m_Gameplay_Rotate;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/DebugInject".
+        /// </summary>
+        public InputAction @DebugInject => m_Wrapper.m_Gameplay_DebugInject;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -392,6 +418,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Rotate.started += instance.OnRotate;
             @Rotate.performed += instance.OnRotate;
             @Rotate.canceled += instance.OnRotate;
+            @DebugInject.started += instance.OnDebugInject;
+            @DebugInject.performed += instance.OnDebugInject;
+            @DebugInject.canceled += instance.OnDebugInject;
         }
 
         /// <summary>
@@ -421,6 +450,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @Rotate.started -= instance.OnRotate;
             @Rotate.performed -= instance.OnRotate;
             @Rotate.canceled -= instance.OnRotate;
+            @DebugInject.started -= instance.OnDebugInject;
+            @DebugInject.performed -= instance.OnDebugInject;
+            @DebugInject.canceled -= instance.OnDebugInject;
         }
 
         /// <summary>
@@ -503,5 +535,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnRotate(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "DebugInject" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDebugInject(InputAction.CallbackContext context);
     }
 }

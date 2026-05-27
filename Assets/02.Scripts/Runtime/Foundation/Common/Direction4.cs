@@ -15,10 +15,10 @@ namespace MokoIndustry.Foundation.Common
         /// <summary> Convert Direction4 to GridCell Offset </summary>
         public static int2 ToOffset(this Direction4 dir) => dir switch
         {
-            Direction4.East  => new int2( 1, 0),
-            Direction4.North => new int2( 0, 1),
-            Direction4.West  => new int2(-1, 0),
-            Direction4.South => new int2( 0,-1),
+            Direction4.East => new int2(1, 0),
+            Direction4.West => new int2(-1, 0),
+            Direction4.North => new int2(0, 1),
+            Direction4.South => new int2(0, -1),
             _                   => int2.zero,
         };
 
@@ -26,9 +26,9 @@ namespace MokoIndustry.Foundation.Common
         public static float ToRadians(this Direction4 dir) => dir switch
         {
             Direction4.East  => 0f,
-            Direction4.North => math.PI * 0.5f,
+            Direction4.North => math.PI * 1.5f,
             Direction4.West  => math.PI,
-            Direction4.South => math.PI * 1.5f,
+            Direction4.South => math.PI * 0.5f,
             _                   => 0f,
         };
     }

@@ -32,7 +32,7 @@ namespace MokoIndustry.Foundation.Input
         private PlayerInput _inputActions;
 
         private BuildingType currentBuilding = BuildingType.Dummy;
-        private Direction4 currentDirection = Direction4.East;
+        private Direction4 currentDirection = Direction4.North;
 
         private void Awake()
         {

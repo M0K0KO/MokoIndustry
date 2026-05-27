@@ -91,7 +91,7 @@ namespace MokoIndustry.Belt
                 float3 beltWorldPos = GridUtility.CellToWorld(gridPos.Cell, Config);
                 float3 itemWorldPos = beltWorldPos + new float3(
                     dir.x * along + perp.x * side,
-                    0.3f,
+                    -beltWorldPos.y + 0.5f,
                     dir.y * along + perp.y * side);
 
                 transform.Position = itemWorldPos;

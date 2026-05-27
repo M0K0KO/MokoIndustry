@@ -16,7 +16,7 @@ namespace MokoIndustry.Belt
                 AddComponent(entity, new GridPosition { Cell = default });
                 AddComponent(entity, new BeltSegment
                 {
-                    Direction = Direction4.East,
+                    Direction = Direction4.North,
                     Items = default,
                     XOffsets = default,
                     YPositions = default,

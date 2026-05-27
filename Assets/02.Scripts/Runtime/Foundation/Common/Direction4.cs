@@ -26,9 +26,9 @@ namespace MokoIndustry.Foundation.Common
         public static float ToRadians(this Direction4 dir) => dir switch
         {
             Direction4.North => 0f,
-            Direction4.West  => math.PI * 0.5f,
+            Direction4.West  => math.PI * 1.5f,
             Direction4.South => math.PI,
-            Direction4.East  => math.PI * 1.5f,
+            Direction4.East  => math.PI * 0.5f,
             _                => 0f,
         };
     }

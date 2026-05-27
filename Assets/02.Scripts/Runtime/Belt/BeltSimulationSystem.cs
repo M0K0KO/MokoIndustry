@@ -183,6 +183,10 @@ namespace MokoIndustry.Belt
                 ref BeltSegment belt,
                 in GridPosition gridPos)
             {
+                belt.PrevYPositions = belt.YPositions;
+                belt.PrevXOffsets = belt.XOffsets;
+                belt.PrevLength = belt.Length;
+
                 if (!CellToIndex.TryGetValue(gridPos.Cell, out int idx))
                     return;
 

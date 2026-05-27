@@ -61,32 +61,50 @@ namespace MokoIndustry.Belt
                 }
 
                 var belt = BeltLookup[owner];
+                var gridPos = GridLookup[owner];
 
                 int i = state.ArrayIndex;
 
-                if (i >= belt.Length)
+                byte currentLen = belt.Length;
+                byte prevLen = belt.PrevLength;
+
+                bool currentVisible = i < currentLen;
+                bool prevVisible = i < prevLen;
+
+                if (!currentVisible)
                 {
                     transform.Scale = 0f;
+                    color.Value = default;
                     return;
                 }
 
                 transform.Scale = 1f;
                 transform.Rotation = quaternion.identity;
 
-                var gridPos = GridLookup[owner];
+                int srcIdxCurrent = currentLen - 1 - i;
+                int srcIdxPrev = prevLen - 1 - i;
 
-                int srcIdx = belt.Length - 1 - i;
-                var item = (ItemId)belt.Items[srcIdx];
-                float ys = belt.YPositions[srcIdx] / 255f;
-                float xs = belt.XOffsets[srcIdx] / 127f;
+                float ysCurrentN = belt.YPositions[srcIdxCurrent] / 255f;
+                float xsCurrentN = belt.XOffsets[srcIdxCurrent] / 127f;
 
-                float visualYs = math.min(ys + Alpha * (BeltConstants.SpeedPerTick / 255f), 1f);
+                float ysVisual, xsVisual;
+                if (belt.Length == belt.PrevLength && prevVisible)
+                {
+                    float ysPrevN = belt.PrevYPositions[srcIdxPrev] / 255f;
+                    float xsPrevN = belt.PrevXOffsets[srcIdxPrev] / 127f;
+                    ysVisual = math.lerp(ysPrevN, ysCurrentN, Alpha);
+                    xsVisual = math.lerp(xsPrevN, xsCurrentN, Alpha);
+                }
+                else
+                {
+                    ysVisual = ysCurrentN;
+                    xsVisual = xsCurrentN;
+                }
 
                 float2 dir = (float2)belt.Direction.ToOffset();
                 float2 perp = new float2(-dir.y, dir.x);
-
-                float along = visualYs - 0.5f;
-                float side = xs * 0.5f;
+                float along = ysVisual - 0.5f;
+                float side = xsVisual * 0.5f;
 
                 float3 beltWorldPos = GridUtility.CellToWorld(gridPos.Cell, Config);
                 float3 itemWorldPos = beltWorldPos + new float3(
@@ -96,6 +114,7 @@ namespace MokoIndustry.Belt
 
                 transform.Position = itemWorldPos;
 
+                var item = (ItemId)belt.Items[srcIdxCurrent];
                 color.Value = ItemColor(item);
             }
 

@@ -24,6 +24,9 @@ namespace MokoIndustry.Belt
                 AddComponent<NewlyBuiltTag>(entity);
                 SetComponentEnabled<NewlyBuiltTag>(entity, true);
 
+                AddComponent<ItemRendererNeedsSpawnTag>(entity);
+                SetComponentEnabled<ItemRendererNeedsSpawnTag>(entity, true);
+
                 AddComponent<PendingDestroyTag>(entity);
                 SetComponentEnabled<PendingDestroyTag>(entity, false);
             }

@@ -5,8 +5,12 @@ namespace MokoIndustry.Foundation
 {
     public class PrefabRegistryAuthoring : MonoBehaviour
     {
+        [Header("Buildable Prefab")]
         [SerializeField] private GameObject dummyBuildingPrefab;
         [SerializeField] private GameObject beltPrefab;
+
+        [Header("Item Prefab")]
+        [SerializeField] private GameObject itemRendererPrefab;
 
         private class Baker : Baker<PrefabRegistryAuthoring>
         {
@@ -21,6 +25,10 @@ namespace MokoIndustry.Foundation
 
                     BeltPrefab = GetEntity(
                         authoring.beltPrefab,
+                        TransformUsageFlags.Dynamic),
+
+                    ItemRendererPrefab = GetEntity(
+                        authoring.itemRendererPrefab, 
                         TransformUsageFlags.Dynamic),
                 });
             }

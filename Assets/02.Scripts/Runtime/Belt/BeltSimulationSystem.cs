@@ -66,7 +66,8 @@ namespace MokoIndustry.Belt
                 AcceptedIn = acceptedIn,
             }.ScheduleParallel(_beltQuery, h3);
 
-            state.Dependency = h4;
+            //state.Dependency = h4;
+            h4.Complete();
 
             var d1 = snapshots.Dispose(h4);
             var d2 = cellToIndex.Dispose(h4);

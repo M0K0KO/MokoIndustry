@@ -4,19 +4,15 @@ using MokoIndustry.Foundation.Grid;
 using MokoIndustry.Foundation.Input;
 using MokoIndustry.Foundation.Tick;
 using Unity.Burst;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace MokoIndustry.Foundation.Build
 {
     [UpdateInGroup(typeof(CommandApplySystemGroup))]
-    [BurstCompile]
     public partial struct BuildCommandSystem : ISystem
     {
-        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<TickSingleton>();
@@ -26,7 +22,6 @@ namespace MokoIndustry.Foundation.Build
             state.RequireForUpdate<PrefabRegistrySingleton>();
         }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var tick = SystemAPI.GetSingleton<TickSingleton>();
@@ -40,9 +35,6 @@ namespace MokoIndustry.Foundation.Build
             var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                         .CreateCommandBuffer(state.WorldUnmanaged);
 
-            state.EntityManager.CompleteDependencyBeforeRW<BeltSegment>();
-            var beltLookup = SystemAPI.GetComponentLookup<BeltSegment>(false);
-
             for (int i = buffer.Length - 1; i >= 0; i--)
             {
                 var cmd = buffer[i].Command;
@@ -55,17 +47,17 @@ namespace MokoIndustry.Foundation.Build
                     continue;
                 }
 
-                Apply(ecb, cmd, in config, occupancy, in registry, ref beltLookup);
+                Apply(ref state, ecb, cmd, in config, occupancy, in registry);
             }
         }
 
         private void Apply(
+            ref SystemState state,
             EntityCommandBuffer ecb,
             in InputCommand cmd,
             in GridConfigSingleton config,
             in GridOccupancySingleton occupancy,
-            in PrefabRegistrySingleton registry, 
-            ref ComponentLookup<BeltSegment> beltLookup)
+            in PrefabRegistrySingleton registry)
         {
             if (!GridUtility.IsInBounds(cmd.Cell, in config)) return;
 
@@ -78,6 +70,8 @@ namespace MokoIndustry.Foundation.Build
                     DoDemolish(ecb, cmd, in occupancy);
                     break;
                 case CommandType.DebugInject:
+                    state.EntityManager.CompleteDependencyBeforeRW<BeltSegment>();
+                    var beltLookup = SystemAPI.GetComponentLookup<BeltSegment>(false);
                     DoDebugInject(cmd, occupancy, ref beltLookup);
                     break;
             }

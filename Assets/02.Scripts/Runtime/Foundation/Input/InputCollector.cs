@@ -69,9 +69,12 @@ namespace MokoIndustry.Foundation.Input
 
             if (_queriesCreated)
             {
-                _tickQuery.Dispose();
-                _bufferQuery.Dispose();
-                _gridQuery.Dispose();
+                if (_world != null && _world.IsCreated)
+                {
+                    _tickQuery.Dispose();
+                    _bufferQuery.Dispose();
+                    _gridQuery.Dispose();
+                }
 
                 _queriesCreated = false;
             }

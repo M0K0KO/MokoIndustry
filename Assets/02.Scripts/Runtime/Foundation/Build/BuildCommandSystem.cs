@@ -129,9 +129,10 @@ namespace MokoIndustry.Foundation.Build
             if (!beltLookup.HasComponent(entity)) return;
 
             ref var belt = ref beltLookup.GetRefRW(entity).ValueRW;
+            if (belt.Length >= BeltConstants.Capacity) return;
+            if (belt.Length > 0 && belt.YPositions[0] < BeltConstants.ItemSpace) return;
 
-            if (belt.GetSlot(BeltConstants.SlotCount - 1) == ItemId.None)
-                belt.SetItem(BeltConstants.SlotCount - 1, ItemId.Ore, 0);
+            belt.InsertAtTail(ItemId.Ore, 0);
         }
     }
 }

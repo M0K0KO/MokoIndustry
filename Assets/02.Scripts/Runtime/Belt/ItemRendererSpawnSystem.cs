@@ -23,13 +23,13 @@ namespace MokoIndustry.Belt
 
             foreach (var (_, beltEntity) in SystemAPI.Query<RefRO<BeltTag>>().WithAll<ItemRendererNeedsSpawnTag>().WithEntityAccess())
             {
-                for (int i = 0; i < BeltConstants.SlotCount; i++)
+                for (int i = 0; i < BeltConstants.Capacity; i++)
                 {
                     var child = ecb.Instantiate(registry.ItemRendererPrefab);
                     ecb.SetComponent(child, new ItemRendererState
                     {
                         OwnerBelt = beltEntity,
-                        SlotIndex = i,
+                        ArrayIndex = i,
                     });
                 }
 

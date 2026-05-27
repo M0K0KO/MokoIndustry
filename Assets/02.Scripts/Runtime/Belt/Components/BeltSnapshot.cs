@@ -8,8 +8,12 @@ namespace MokoIndustry.Belt
     {
         public Entity Entity;
         public Direction4 Direction;
-        public FixedList32Bytes<byte> Slots;
-        public FixedList32Bytes<byte> SlotProgress;
+        public FixedList32Bytes<byte> Items;
+        public FixedList32Bytes<sbyte> XOffsets;
+        public FixedList32Bytes<byte> YPositions;
+        public byte Length;
+
+        public byte MinPosition;
 
         public static BeltSnapshot From(Entity entity, in BeltSegment belt)
         {
@@ -17,19 +21,12 @@ namespace MokoIndustry.Belt
             {
                 Entity = entity,
                 Direction = belt.Direction,
-                Slots = belt.Slots,
-                SlotProgress = belt.SlotProgress
+                Items = belt.Items,
+                XOffsets = belt.XOffsets,
+                YPositions = belt.YPositions,
+                Length = belt.Length,
+                MinPosition = (belt.Length == 0) ? (byte)255 : belt.YPositions[0]
             };
-        }
-
-        public ItemId GetSlot(int index)
-        {
-            return (ItemId)Slots[index];
-        }
-
-        public byte GetProgress(int index)
-        {
-            return SlotProgress[index];
         }
     }
 }

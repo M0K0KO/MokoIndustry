@@ -111,37 +111,25 @@ namespace MokoIndustry.Belt
             {
                 var src = Snapshots[idx];
 
-                if ((ItemId)src.Slots[0] == ItemId.None)
-                    return;
-
-                if (!WillReachNext(src.GetProgress(0)))
-                    return;
+                if (src.Length == 0) return;
+                byte headY = src.YPositions[src.Length - 1];
+                if (headY + BeltConstants.SpeedPerTick < BeltConstants.MaxPosition) return;
 
                 int2 nextCell = gridPos.Cell + src.Direction.ToOffset();
-
-                if (!CellToIndex.TryGetValue(nextCell, out int destIdx)) 
-                    return;
-
-                if (destIdx == idx) 
-                    return;
+                if (!CellToIndex.TryGetValue(nextCell, out int destIdx)) return;
+                if (destIdx == idx) return;
 
                 var dest = Snapshots[destIdx];
-
-                if (dest.GetSlot(BeltSegment.SlotCount - 1) != ItemId.None)
-                    return;
+                if (dest.Length >= BeltConstants.Capacity) return;
+                if (dest.MinPosition < BeltConstants.ItemSpace) return; // no space to accept
 
                 Intents.AddNoResize(new MoveIntent
                 {
                     SourceIdx = idx,
                     DestIdx = destIdx,
-                    Item = (ItemId)src.Slots[0],
-                    Priority = (byte)src.Direction
+                    Item = (ItemId)src.Items[src.Length - 1],
+                    Priority = (byte)src.Direction,
                 });
-            }
-
-            private static bool WillReachNext(byte progress)
-            {
-                return progress + BeltConstants.SpeedPerTickByte >= BeltConstants.MaxProgress;
             }
         }
 
@@ -188,7 +176,7 @@ namespace MokoIndustry.Belt
         private partial struct ApplyJob : IJobEntity
         {
             [ReadOnly] public NativeParallelHashMap<int2, int> CellToIndex;
-            [ReadOnly] public NativeArray<byte> AcceptedOut;
+            [ReadOnly] public NativeArray<byte>   AcceptedOut;
             [ReadOnly] public NativeArray<ItemId> AcceptedIn;
 
             void Execute(
@@ -201,130 +189,34 @@ namespace MokoIndustry.Belt
                 bool outgoing = AcceptedOut[idx] != 0;
                 ItemId incoming = AcceptedIn[idx];
 
-                StepBelt(ref belt, outgoing, incoming);
-            }
+                if (outgoing) belt.RemoveHead();
 
-            private static void StepBelt(
-                ref BeltSegment belt,
-                bool outgoing,
-                ItemId incoming)
-            {
-                ItemId s0 = belt.GetSlot(0);
-                ItemId s1 = belt.GetSlot(1);
-                ItemId s2 = belt.GetSlot(2);
-                ItemId s3 = belt.GetSlot(3);
-
-                byte p0 = belt.GetProgress(0);
-                byte p1 = belt.GetProgress(1);
-                byte p2 = belt.GetProgress(2);
-                byte p3 = belt.GetProgress(3);
-
-                ItemId n0 = s0;
-                ItemId n1 = s1;
-                ItemId n2 = s2;
-                ItemId n3 = s3;
-
-                byte np0 = p0;
-                byte np1 = p1;
-                byte np2 = p2;
-                byte np3 = p3;
-
-                // 1. slot0 -> next belt
-                if (s0 != ItemId.None)
+                for (int i =belt.Length-1; i>=0; i--)
                 {
-                    p0 = Advance(p0);
+                    int frontY = (i == belt.Length - 1)
+                        ? BeltConstants.MaxPosition + 1
+                        : belt.YPositions[i + 1] - BeltConstants.ItemSpace;
 
-                    if (outgoing && p0 >= BeltConstants.MaxProgress)
-                    {
-                        n0 = ItemId.None;
-                        np0 = 0;
-                    }
-                    else
-                    {
-                        n0 = s0;
-                        np0 = p0;
-                    }
+                    int currentY = belt.YPositions[i];
+                    int newY = math.min(currentY + BeltConstants.SpeedPerTick, frontY);
+                    newY = math.min(newY, BeltConstants.MaxPosition);
+                    if (newY < currentY) newY = currentY;
+
+                    belt.YPositions[i] = (byte)newY;
+
+                    int currentX = belt.XOffsets[i];
+                    int xMove = BeltConstants.SpeedPerTick * 2;
+                    if (currentX > 0) currentX = math.max(0, currentX - xMove);
+                    else if (currentX < 0) currentX = math.min(0, currentX + xMove);
+                    belt.XOffsets[i] = (sbyte)currentX;
                 }
 
-                // 2. slot1 -> slot0
-                if (s1 != ItemId.None)
+                if (incoming != ItemId.None 
+                    && belt.Length < BeltConstants.Capacity 
+                    && (belt.Length == 0 || belt.YPositions[0] >= BeltConstants.ItemSpace))
                 {
-                    p1 = Advance(p1);
-
-                    if (p1 >= BeltConstants.MaxProgress && n0 == ItemId.None)
-                    {
-                        n0 = s1;
-                        np0 = 0;
-
-                        n1 = ItemId.None;
-                        np1 = 0;
-                    }
-                    else
-                    {
-                        n1 = s1;
-                        np1 = p1;
-                    }
+                    belt.InsertAtTail(incoming, 0);
                 }
-
-                // 3. slot2 -> slot1
-                if (s2 != ItemId.None)
-                {
-                    p2 = Advance(p2);
-
-                    if (p2 >= BeltConstants.MaxProgress && n1 == ItemId.None)
-                    {
-                        n1 = s2;
-                        np1 = 0;
-
-                        n2 = ItemId.None;
-                        np2 = 0;
-                    }
-                    else
-                    {
-                        n2 = s2;
-                        np2 = p2;
-                    }
-                }
-
-                // 4. slot3 -> slot2
-                if (s3 != ItemId.None)
-                {
-                    p3 = Advance(p3);
-
-                    if (p3 >= BeltConstants.MaxProgress && n2 == ItemId.None)
-                    {
-                        n2 = s3;
-                        np2 = 0;
-
-                        n3 = ItemId.None;
-                        np3 = 0;
-                    }
-                    else
-                    {
-                        n3 = s3;
-                        np3 = p3;
-                    }
-                }
-
-                // 5. incoming -> slot3
-                if (incoming != ItemId.None && n3 == ItemId.None)
-                {
-                    n3 = incoming;
-                    np3 = 0;
-                }
-
-                belt.SetItem(0, n0, np0);
-                belt.SetItem(1, n1, np1);
-                belt.SetItem(2, n2, np2);
-                belt.SetItem(3, n3, np3);
-            }
-
-            private static byte Advance(byte progress)
-            {
-                int next = progress + BeltConstants.SpeedPerTickByte;
-                return next >= BeltConstants.MaxProgress
-                    ? BeltConstants.MaxProgress
-                    : (byte)next;
             }
         }
     }

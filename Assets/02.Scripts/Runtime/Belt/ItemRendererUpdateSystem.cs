@@ -61,41 +61,40 @@ namespace MokoIndustry.Belt
                 }
 
                 var belt = BeltLookup[owner];
-                var gridPos = GridLookup[owner];
 
-                int i = state.SlotIndex;
-                var item = belt.GetSlot(i);
-                var progress = belt.GetProgress(i);
+                int i = state.ArrayIndex;
 
-                if (item == ItemId.None)
+                if (i >= belt.Length)
                 {
-                    color.Value = new float4(0f, 0f, 0f, 0f);
-                    transform.Position = new float3(-9999f, -9999f, -9999f);
+                    transform.Scale = 0f;
                     return;
                 }
 
-                float currentProgress = progress;
-                float visualProgress = math.min(
-                    currentProgress + Alpha * BeltConstants.SpeedPerTickByte,
-                    (float)BeltConstants.MaxProgress);
-
-                float t = visualProgress / (float)BeltConstants.MaxProgress;
-                float along = (1.5f - i + t) * BeltConstants.SlotSize;
-
-                float2 dirVec = (float2)belt.Direction.ToOffset();
-
-                float3 beltWorldPos = GridUtility.CellToWorld(gridPos.Cell, Config);
-
-                float3 slotWorldPos = beltWorldPos + new float3(
-                    dirVec.x * along,
-                    0f,
-                    dirVec.y * along
-                );
-
-                slotWorldPos.y += 0.3f;
-                transform.Position = slotWorldPos;
                 transform.Scale = 1f;
                 transform.Rotation = quaternion.identity;
+
+                var gridPos = GridLookup[owner];
+
+                int srcIdx = belt.Length - 1 - i;
+                var item = (ItemId)belt.Items[srcIdx];
+                float ys = belt.YPositions[srcIdx] / 255f;
+                float xs = belt.XOffsets[srcIdx] / 127f;
+
+                float visualYs = math.min(ys + Alpha * (BeltConstants.SpeedPerTick / 255f), 1f);
+
+                float2 dir = (float2)belt.Direction.ToOffset();
+                float2 perp = new float2(-dir.y, dir.x);
+
+                float along = visualYs - 0.5f;
+                float side = xs * 0.5f;
+
+                float3 beltWorldPos = GridUtility.CellToWorld(gridPos.Cell, Config);
+                float3 itemWorldPos = beltWorldPos + new float3(
+                    dir.x * along + perp.x * side,
+                    0.3f,
+                    dir.y * along + perp.y * side);
+
+                transform.Position = itemWorldPos;
 
                 color.Value = ItemColor(item);
             }

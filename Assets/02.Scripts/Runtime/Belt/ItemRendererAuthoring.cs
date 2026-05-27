@@ -16,7 +16,7 @@ namespace MokoIndustry.Belt
                 AddComponent(entity, new ItemRendererState
                 {
                     OwnerBelt = Entity.Null,
-                    SlotIndex = 0,
+                    ArrayIndex = 0,
                 });
                 AddComponent(entity, new URPMaterialPropertyBaseColor
                 {

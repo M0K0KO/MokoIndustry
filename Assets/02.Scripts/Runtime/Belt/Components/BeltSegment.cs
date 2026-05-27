@@ -1,6 +1,7 @@
 using MokoIndustry.Foundation.Common;
 using Unity.Collections;
 using Unity.Entities;
+using static UnityEditor.Experimental.GraphView.Port;
 
 namespace MokoIndustry.Belt
 {
@@ -8,51 +9,43 @@ namespace MokoIndustry.Belt
     {
         public Direction4 Direction;
 
-        public FixedList32Bytes<byte> Slots;
-        public FixedList32Bytes<byte> SlotProgress;
+        public FixedList32Bytes<byte> Items;       // ItemId[capacity], capacity=3
 
-        public float Progress;
+        public FixedList32Bytes<sbyte> XOffsets;   // int8, [-127, 127]
 
-        public const int SlotCount = BeltConstants.SlotCount;
+        public FixedList32Bytes<byte> YPositions;  // uint8, [0, 255]
 
-        public ItemId GetSlot(int index) => (ItemId)Slots[index];
-        public void SetSlot(int index, ItemId item) => Slots[index] = (byte)item;
-        public byte GetProgress(int index)
-        {
-            return SlotProgress[index];
-        }
-        public void SetProgress(int index, byte progress)
-        {
-            SlotProgress[index] = progress;
-        }
-        public void ClearSlot(int index)
-        {
-            Slots[index] = (byte)ItemId.None;
-            SlotProgress[index] = 0;
-        }
-        public void SetItem(int index, ItemId item, byte progress = 0)
-        {
-            Slots[index] = (byte)item;
-            SlotProgress[index] = progress;
-        }
+        public byte Length;
 
-        public static BeltSegment CreateEmpty(Direction4 direction)
+        public void InsertAtTail(ItemId item, sbyte xOffset)
         {
-            var slots = new FixedList32Bytes<byte>();
-            var progress = new FixedList32Bytes<byte>();
-
-            for (int i = 0; i < SlotCount; i++)
+            for (int i = Length; i > 0; i--)
             {
-                slots.Add((byte)ItemId.None);
-                progress.Add(0);
+                Items[i] = Items[i - 1];
+                XOffsets[i] = XOffsets[i - 1];
+                YPositions[i] = YPositions[i - 1];
             }
+            Items[0] = (byte)item;
+            XOffsets[0] = xOffset;
+            YPositions[0] = 0;
+            Length++;
+        }
 
-            return new BeltSegment
-            {
-                Direction = direction,
-                Slots = slots,
-                SlotProgress = progress
-            };
+        public void RemoveHead()
+        {
+            if (Length > 0) Length--;
+        }
+
+        public ItemId GetItem(int i) => (ItemId)Items[i];
+        public byte GetY(int i) => YPositions[i];
+        public sbyte GetX(int i) => XOffsets[i];
+
+        public static BeltSegment CreateEmpty(Direction4 dir)
+        {
+            var items = new FixedList32Bytes<byte>(); items.Length = BeltConstants.Capacity;
+            var xs = new FixedList32Bytes<sbyte>(); xs.Length = BeltConstants.Capacity;
+            var ys = new FixedList32Bytes<byte>(); ys.Length = BeltConstants.Capacity;
+            return new BeltSegment { Direction = dir, Items = items, XOffsets = xs, YPositions = ys, Length = 0 };
         }
     }
 }

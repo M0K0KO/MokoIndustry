@@ -67,8 +67,14 @@ namespace MokoIndustry.Foundation.Determinism
                 {
                     var belt = beltLookup[entity];
                     hash = FnvCombine(hash, (ulong)(byte)belt.Direction);
-                    hash = FnvCombine(hash, PackSlots(belt.Slots));
-                    hash = FnvCombine(hash, PackSlots(belt.SlotProgress));
+                    hash = FnvCombine(hash, belt.Length);
+
+                    for (int i2 = 0; i2 < belt.Length; i2++)
+                    {
+                        hash = FnvCombine(hash, belt.Items[i2]);
+                        hash = FnvCombine(hash, (ulong)(byte)belt.XOffsets[i2]);
+                        hash = FnvCombine(hash, belt.YPositions[i2]);
+                    }
                 }
             }
 

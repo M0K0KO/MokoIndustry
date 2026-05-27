@@ -2,9 +2,12 @@ namespace MokoIndustry.Belt
 {
     public static class BeltConstants
     {
-        public const byte MaxProgress = byte.MaxValue;
-        public const byte SpeedPerTickByte = 32;
-        public const int SlotCount = 4;
-        public const float SlotSize = 1f / SlotCount;
+        public const int Capacity = 3;
+
+        public const byte ItemSpace = 102;
+
+        public const byte MaxPosition = 255;
+
+        public const byte SpeedPerTick = 32;
     }
 }

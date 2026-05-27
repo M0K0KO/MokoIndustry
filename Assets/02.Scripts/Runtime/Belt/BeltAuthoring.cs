@@ -17,8 +17,10 @@ namespace MokoIndustry.Belt
                 AddComponent(entity, new BeltSegment
                 {
                     Direction = Direction4.East,
-                    Slots     = default,
-                    Progress  = 0f,
+                    Items = default,
+                    XOffsets = default,
+                    YPositions = default,
+                    Length = 0
                 });
 
                 AddComponent<NewlyBuiltTag>(entity);

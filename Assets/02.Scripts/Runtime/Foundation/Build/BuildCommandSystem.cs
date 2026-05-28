@@ -3,6 +3,7 @@ using MokoIndustry.Foundation.Common;
 using MokoIndustry.Foundation.Grid;
 using MokoIndustry.Foundation.Input;
 using MokoIndustry.Foundation.Tick;
+using MokoIndustry.Logistics;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -90,6 +91,7 @@ namespace MokoIndustry.Foundation.Build
             {
                 BuildingType.Dummy => registry.DummyBuildingPrefab,
                 BuildingType.Belt => registry.BeltPrefab,
+                BuildingType.Router => registry.RouterPrefab,
                 _ => Entity.Null,
             };
             if (prefab == Entity.Null) return;
@@ -105,6 +107,12 @@ namespace MokoIndustry.Foundation.Build
             if (cmd.Building == BuildingType.Belt)
             {
                 ecb.SetComponent(entity, BeltSegment.CreateEmpty(cmd.Direction));
+                ecb.SetComponent(entity, new IOPort
+                {
+                    OutputMask = Direction4Extensions.Bit(cmd.Direction),
+                    InputMask = Direction4Extensions.Bit(Direction4Extensions.Opposite(cmd.Direction)),
+                    AcceptFilter = 0
+                });
             }
         }
 

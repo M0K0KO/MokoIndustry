@@ -6,6 +6,7 @@ namespace MokoIndustry.Foundation
     {
         public Entity DummyBuildingPrefab;
         public Entity BeltPrefab;
+        public Entity RouterPrefab;
         public Entity ItemRendererPrefab;
     }
 }

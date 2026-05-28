@@ -1,21 +1,23 @@
-using MokoIndustry.Foundation.Common;
 using MokoIndustry.Foundation.Build;
+using MokoIndustry.Foundation.Common;
+using MokoIndustry.Logistics;
 using Unity.Entities;
 using UnityEngine;
-using MokoIndustry.Logistics;
 
-namespace MokoIndustry.Belt
+
+namespace MokoIndustry.Logistics
 {
-    public class BeltAuthoring : MonoBehaviour
+    public class RouterAuthoring : MonoBehaviour
     {
-        private class Baker : Baker<BeltAuthoring>
+        [SerializeField] private GameObject routerPrefab;
+
+        public class Baker : Baker<RouterAuthoring>
         {
-            public override void Bake(BeltAuthoring authoring)
+            public override void Bake(RouterAuthoring authoring)
             {
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
-                AddComponent<BeltTag>(entity);
+                AddComponent<RouterTag>(entity);
                 AddComponent(entity, new GridPosition { Cell = default });
-
                 AddComponent(entity, new IOPort
                 {
                     InputMask = 0,
@@ -23,20 +25,14 @@ namespace MokoIndustry.Belt
                     AcceptFilter = 0
                 });
 
-                AddComponent(entity, new BeltSegment
+                AddComponent(entity, new RouterSegment
                 {
-                    Direction = Direction4.North,
-                    Items = default,
-                    XOffsets = default,
-                    YPositions = default,
-                    Length = 0
+                    Buffer = default,
+                    RoundRobinPtr = 0,
                 });
 
                 AddComponent<NewlyBuiltTag>(entity);
                 SetComponentEnabled<NewlyBuiltTag>(entity, true);
-
-                AddComponent<ItemRendererNeedsSpawnTag>(entity);
-                SetComponentEnabled<ItemRendererNeedsSpawnTag>(entity, true);
 
                 AddComponent<PendingDestroyTag>(entity);
                 SetComponentEnabled<PendingDestroyTag>(entity, false);

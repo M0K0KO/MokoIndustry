@@ -5,5 +5,6 @@ namespace MokoIndustry.Foundation.Common
         None  = 0,
         Dummy = 1,
         Belt  = 2,
+        Router = 3,
     }
 }

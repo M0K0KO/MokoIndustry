@@ -82,23 +82,33 @@ namespace MokoIndustry.Belt
                 transform.Rotation = quaternion.identity;
 
                 int srcIdxCurrent = currentLen - 1 - i;
-                int srcIdxPrev = prevLen - 1 - i;
 
                 float ysCurrentN = belt.YPositions[srcIdxCurrent] / 255f;
                 float xsCurrentN = belt.XOffsets[srcIdxCurrent] / 127f;
 
-                float ysVisual, xsVisual;
-                if (belt.Length == belt.PrevLength && prevVisible)
+                float ysVisual = ysCurrentN;
+                float xsVisual = xsCurrentN;
+                if (prevVisible)
                 {
-                    float ysPrevN = belt.PrevYPositions[srcIdxPrev] / 255f;
-                    float xsPrevN = belt.PrevXOffsets[srcIdxPrev] / 127f;
-                    ysVisual = math.lerp(ysPrevN, ysCurrentN, Alpha);
-                    xsVisual = math.lerp(xsPrevN, xsCurrentN, Alpha);
+                    int srcIdxPrev = GetPreviousItemIndex(
+                                            i,
+                                            srcIdxCurrent,
+                                            currentLen,
+                                            prevLen,
+                                            belt.Items[srcIdxCurrent],
+                                            belt.PrevItems);
+                    if (srcIdxPrev >= 0 && srcIdxPrev < prevLen)
+                    {
+                        float ysPrevN = belt.PrevYPositions[srcIdxPrev] / 255f;
+                        float xsPrevN = belt.PrevXOffsets[srcIdxPrev] / 127f;
+                        ysVisual = math.lerp(ysPrevN, ysCurrentN, Alpha);
+                        xsVisual = math.lerp(xsPrevN, xsCurrentN, Alpha);
+                    }
                 }
-                else
+                else if (belt.YPositions[srcIdxCurrent] <= BeltConstants.SpeedPerTick)
                 {
-                    ysVisual = ysCurrentN;
-                    xsVisual = xsCurrentN;
+                    float ysPrevN = (belt.YPositions[srcIdxCurrent] - BeltConstants.SpeedPerTick) / 255f;
+                    ysVisual = math.lerp(ysPrevN, ysCurrentN, Alpha);
                 }
 
                 float2 dir = (float2)belt.Direction.ToOffset();
@@ -116,6 +126,34 @@ namespace MokoIndustry.Belt
 
                 var item = (ItemId)belt.Items[srcIdxCurrent];
                 color.Value = ItemColor(item);
+            }
+
+            private static int GetPreviousItemIndex(
+               int renderIndex,
+               int currentItemIndex,
+               byte currentLen,
+               byte prevLen,
+               byte currentItem,
+               FixedList32Bytes<byte> prevItems)
+            {
+                int preferred = currentLen < prevLen
+                    ? currentItemIndex
+                    : prevLen - 1 - renderIndex;
+
+                if (preferred >= 0 && preferred < prevLen && prevItems[preferred] == currentItem)
+                {
+                    return preferred;
+                }
+
+                for (int previousIndex = 0; previousIndex < prevLen; previousIndex++)
+                {
+                    if (prevItems[previousIndex] == currentItem)
+                    {
+                        return previousIndex;
+                    }
+                }
+
+                return preferred;
             }
 
             private static float4 ItemColor(ItemId item)

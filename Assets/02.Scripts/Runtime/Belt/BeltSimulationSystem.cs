@@ -98,6 +98,7 @@ namespace MokoIndustry.Belt
 
             var h4a = new BeltApplyJob
             {
+                Snapshots = snapshots,
                 CellToIndex = cellToIndex,
                 AcceptedOut = acceptedOut,
                 AcceptedIn = acceptedIn,
@@ -273,7 +274,7 @@ namespace MokoIndustry.Belt
                 Intents.Sort(new IntentComparer());
 
                 int i = 0;
-                while(i < Intents.Length )
+                while (i < Intents.Length)
                 {
                     var winner = Intents[i];
                     AcceptedOut[winner.SourceIdx] = 1;
@@ -304,8 +305,9 @@ namespace MokoIndustry.Belt
         [BurstCompile]
         private partial struct BeltApplyJob : IJobEntity
         {
+            [ReadOnly] public NativeArray<BeltSnapshot> Snapshots;
             [ReadOnly] public NativeParallelHashMap<int2, int> CellToIndex;
-            [ReadOnly] public NativeArray<byte>   AcceptedOut;
+            [ReadOnly] public NativeArray<byte> AcceptedOut;
             [ReadOnly] public NativeArray<ItemId> AcceptedIn;
             [ReadOnly] public NativeArray<byte> AcceptedInY;
 
@@ -313,6 +315,7 @@ namespace MokoIndustry.Belt
                 ref BeltSegment belt,
                 in GridPosition gridPos)
             {
+                belt.PrevItems = belt.Items;
                 belt.PrevYPositions = belt.YPositions;
                 belt.PrevXOffsets = belt.XOffsets;
                 belt.PrevLength = belt.Length;
@@ -325,15 +328,17 @@ namespace MokoIndustry.Belt
 
                 if (outgoing) belt.RemoveHead();
 
-                for (int i = belt.Length-1; i >= 0; i--)
+                int headLimit = GetAlignedNextHeadLimit(idx, in belt, in gridPos);
+
+                for (int i = belt.Length - 1; i >= 0; i--)
                 {
                     int frontY = (i == belt.Length - 1)
-                        ? BeltConstants.MaxPosition + 1
+                        ? headLimit + 1
                         : belt.YPositions[i + 1] - BeltConstants.ItemSpace;
 
                     int currentY = belt.YPositions[i];
                     int newY = math.min(currentY + BeltConstants.SpeedPerTick, frontY);
-                    newY = math.min(newY, BeltConstants.MaxPosition);
+                    newY = math.min(newY, headLimit);
                     if (newY < currentY) newY = currentY;
 
                     belt.YPositions[i] = (byte)newY;
@@ -345,13 +350,29 @@ namespace MokoIndustry.Belt
                     belt.XOffsets[i] = (sbyte)currentX;
                 }
 
-                if (incoming != ItemId.None 
-                    && belt.Length < BeltConstants.Capacity 
+                if (incoming != ItemId.None
+                    && belt.Length < BeltConstants.Capacity
                     && (belt.Length == 0 || belt.YPositions[0] >= BeltConstants.ItemSpace))
                 {
-                    UnityEngine.Debug.Log($"Insert at startY={AcceptedInY[idx]} (incoming={incoming})");
                     belt.InsertAtTail(incoming, 0, AcceptedInY[idx]);
                 }
+            }
+
+            private int GetAlignedNextHeadLimit(int idx, in BeltSegment belt, in GridPosition gridPos)
+            {
+                int2 nextCell = gridPos.Cell + belt.Direction.ToOffset();
+                if (!CellToIndex.TryGetValue(nextCell, out int nextIdx) || nextIdx == idx)
+                {
+                    return BeltConstants.MaxPosition;
+                }
+
+                var next = Snapshots[nextIdx];
+                if (next.Kind != BeltSnapshot.KindBelt || next.Direction != belt.Direction)
+                {
+                    return BeltConstants.MaxPosition;
+                }
+
+                return BeltConstants.MaxPosition - math.max((int)BeltConstants.ItemSpace - next.MinPosition, 0);
             }
         }
 

@@ -17,6 +17,8 @@ namespace MokoIndustry.Belt
 
         public byte Length;
 
+        public FixedList32Bytes<byte> PrevItems;
+
         public FixedList32Bytes<byte> PrevYPositions;
 
         public FixedList32Bytes<sbyte> PrevXOffsets;
@@ -52,11 +54,12 @@ namespace MokoIndustry.Belt
             var xs = new FixedList32Bytes<sbyte>(); xs.Length = BeltConstants.Capacity;
             var ys = new FixedList32Bytes<byte>(); ys.Length = BeltConstants.Capacity;
             var pxs = new FixedList32Bytes<sbyte>(); pxs.Length = BeltConstants.Capacity;
-            var pys = new FixedList32Bytes<sbyte>(); pys.Length = BeltConstants.Capacity;
+            var pys = new FixedList32Bytes<byte>(); pys.Length = BeltConstants.Capacity;
+
             return new BeltSegment { 
                 Direction = dir, Items = items, 
                 XOffsets = xs, YPositions = ys, Length = 0,
-                PrevXOffsets = xs, PrevYPositions = ys, PrevLength = 0,
+                PrevItems = items, PrevXOffsets = pxs, PrevYPositions = pys, PrevLength = 0,
             };
         }
     }

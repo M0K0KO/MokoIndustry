@@ -24,7 +24,7 @@ namespace MokoIndustry.Foundation.Grid
             var config = SystemAPI.GetSingleton<GridConfigSingleton>();
             int capacity = config.Size.x * config.Size.y;
 
-            var map = new NativeHashMap<int2, Entity>(capacity, Allocator.Persistent);
+            var map = new NativeParallelHashMap<int2, Entity>(capacity, Allocator.Persistent);
 
             var entity = state.EntityManager.CreateEntity();
             state.EntityManager.AddComponentData(entity, new GridOccupancySingleton

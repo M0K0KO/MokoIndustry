@@ -1,6 +1,9 @@
 using MokoIndustry.Foundation.Grid;
 using MokoIndustry.Foundation.Input;
+using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace MokoIndustry.Foundation.Build
 {
@@ -17,23 +20,35 @@ namespace MokoIndustry.Foundation.Build
         {
             var occupancy = SystemAPI.GetSingleton<GridOccupancySingleton>();
 
-            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                            .CreateCommandBuffer(state.WorldUnmanaged);
-
-            foreach (var (gridPosRO, entity) in SystemAPI.Query<RefRO<GridPosition>>().WithAll<NewlyBuiltTag>().WithEntityAccess())
+            state.Dependency = new RegisterOccupancyJob
             {
-                var cell = gridPosRO.ValueRO.Cell;
+                Occupancy = occupancy.Map,
+            }.Schedule(state.Dependency);
 
-                if (occupancy.Map.TryGetValue(cell, out var existing) && existing == Entity.Null)
-                {
-                    occupancy.Map[cell] = entity;
-                }
-                else if (!occupancy.Map.ContainsKey(cell))
-                {
-                    occupancy.Map.Add(cell, entity);
-                }
+            state.Dependency.Complete();
+        }
 
-                ecb.SetComponentEnabled<NewlyBuiltTag>(entity, false);
+        [BurstCompile]
+        [WithAll(typeof(NewlyBuiltTag))]
+        private partial struct RegisterOccupancyJob : IJobEntity
+        {
+            public NativeParallelHashMap<int2, Entity> Occupancy;
+
+            private void Execute(in GridPosition gridPos, Entity entity)
+            {
+                var cell = gridPos.Cell;
+
+                if (Occupancy.TryGetValue(cell, out var existing))
+                {
+                    if (existing == Entity.Null)
+                    {
+                        Occupancy[cell] = entity;
+                    }
+                }
+                else
+                {
+                    Occupancy.Add(cell, entity);
+                }
             }
         }
     }

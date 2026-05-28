@@ -6,6 +6,6 @@ namespace MokoIndustry.Foundation.Grid
 {
     public struct GridOccupancySingleton : IComponentData
     {
-        public NativeHashMap<int2, Entity> Map;
+        public NativeParallelHashMap<int2, Entity> Map;
     }
 }

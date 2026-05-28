@@ -39,5 +39,6 @@ namespace MokoIndustry.Foundation.Common
         public static bool Has(byte mask, int d) => (mask & Bit(d)) != 0;
 
         public static Direction4 Opposite(Direction4 d) => (Direction4)(((int)d + 2) & 3);
+        public static Direction4 Opposite(int d) => (Direction4)((d + 2) & 3);
     }
 }

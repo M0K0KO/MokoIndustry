@@ -14,6 +14,8 @@ namespace MokoIndustry.Logistics
         // 다음 출력 후보 인덱스
         public byte RoundRobinPtr;
 
+        public byte OutputCooldown;
+
         public bool HasSpace => Buffer.Length < Capacity;
         public bool IsEmpty => Buffer.Length == 0;
     }

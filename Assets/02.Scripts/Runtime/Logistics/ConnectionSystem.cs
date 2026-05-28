@@ -151,7 +151,8 @@ namespace MokoIndustry.Logistics
                 {
                     for (int d = 0; d < 4; d++)
                     {
-                        var n = cell + Offset(d);
+                        var dir = (Direction4)d;
+                        var n = cell + Direction4Extensions.ToOffset(dir);
 
                         if (!Occupancy.TryGetValue(n, out var ne))
                             continue;
@@ -162,8 +163,7 @@ namespace MokoIndustry.Logistics
                         if (IsDestroying(ne))
                             return;
 
-                        var neighborDirToMe = Direction4Extensions.Opposite((Direction4)d);
-
+                        var neighborDirToMe = Direction4Extensions.Opposite(dir);
                         if (BeltLookup.HasComponent(ne) &&
                             BeltLookup[ne].Direction == neighborDirToMe)
                         {
@@ -181,18 +181,6 @@ namespace MokoIndustry.Logistics
 
             private bool IsDestroying(Entity e)
                 => DestroyLookup.HasComponent(e) && DestroyLookup.IsComponentEnabled(e);
-
-            private static int2 Offset(int d)
-            {
-                return d switch
-                {
-                    0 => new int2(0, 1),    // North
-                    1 => new int2(1, 0),    // East
-                    2 => new int2(0, -1),   // South
-                    3 => new int2(-1, 0),   // West
-                    _ => int2.zero
-                };
-            }
         }
 
         [BurstCompile]

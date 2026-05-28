@@ -164,7 +164,7 @@ namespace MokoIndustry.Belt
                     Kind = BeltSnapshot.KindRouter,
 
                     HeadItem = (len == 0) ? ItemId.None : (ItemId)router.Buffer[0],
-                    ReadyToOutput = len > 0,
+                    ReadyToOutput = len > 0 && router.OutputCooldown == 0,
                     CanAcceptIn = len < RouterSegment.Capacity,
                 };
 
@@ -185,23 +185,21 @@ namespace MokoIndustry.Belt
             {
                 var src = Snapshots[idx];
 
-                if (src.Length == 0) return;
-                byte headY = src.YPositions[src.Length - 1];
-                if (headY + BeltConstants.SpeedPerTick < BeltConstants.MaxPosition) return;
+                if (!src.ReadyToOutput) return;
 
                 int2 nextCell = gridPos.Cell + src.Direction.ToOffset();
                 if (!CellToIndex.TryGetValue(nextCell, out int destIdx)) return;
                 if (destIdx == idx) return;
 
                 var dest = Snapshots[destIdx];
-                if (dest.Length >= BeltConstants.Capacity) return;
-                if (dest.MinPosition < BeltConstants.ItemSpace) return; // no space to accept
+
+                if (!dest.CanAcceptIn) return;
 
                 Intents.AddNoResize(new MoveIntent
                 {
                     SourceIdx = idx,
                     DestIdx = destIdx,
-                    Item = (ItemId)src.Items[src.Length - 1],
+                    Item = src.HeadItem,
                     Priority = (byte)src.Direction,
                 });
             }
@@ -223,7 +221,6 @@ namespace MokoIndustry.Belt
             {
                 int idx = IndexOffset + localIdx;
                 var src = Snapshots[idx];
-
                 if (!src.ReadyToOutput) return;
 
                 for (int step = 0; step < 4; step++)
@@ -272,7 +269,6 @@ namespace MokoIndustry.Belt
                     AcceptedOut[winner.SourceIdx] = 1;
                     AcceptedOutDir[winner.SourceIdx] = winner.SourceChosenDir;
                     AcceptedIn[winner.DestIdx] = winner.Item;
-
                     int destIdx = winner.DestIdx;
                     i++;
 
@@ -358,8 +354,13 @@ namespace MokoIndustry.Belt
                ref RouterSegment router,
                in GridPosition gridPos)
             {
+                if (router.OutputCooldown > 0)
+                    router.OutputCooldown--;
+
                 if (!CellToIndex.TryGetValue(gridPos.Cell, out int idx))
+                {
                     return;
+                }
 
                 bool outgoing = AcceptedOut[idx] != 0;
                 ItemId incoming = AcceptedIn[idx];
@@ -369,6 +370,7 @@ namespace MokoIndustry.Belt
                     router.Buffer.RemoveAt(0);
                     int chosenDir = AcceptedOutDir[idx];
                     router.RoundRobinPtr = (byte)((chosenDir + 1) & 3);
+                    router.OutputCooldown = BeltConstants.RouterOutputInterval;
                 }
 
                 if (incoming != ItemId.None && router.Buffer.Length < RouterSegment.Capacity)

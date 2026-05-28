@@ -74,7 +74,6 @@ namespace MokoIndustry.Belt
                 if (!currentVisible)
                 {
                     transform.Scale = 0f;
-                    color.Value = default;
                     return;
                 }
 

@@ -1,7 +1,6 @@
 using MokoIndustry.Foundation.Common;
 using Unity.Collections;
 using Unity.Entities;
-using static UnityEditor.Experimental.GraphView.Port;
 
 namespace MokoIndustry.Belt
 {
@@ -24,6 +23,8 @@ namespace MokoIndustry.Belt
         public FixedList32Bytes<sbyte> PrevXOffsets;
 
         public byte PrevLength;
+
+        public byte InsertedAtTailThisTick;
 
         public void InsertAtTail(ItemId item, sbyte xOffset, byte startY)
         {
@@ -60,6 +61,8 @@ namespace MokoIndustry.Belt
                 Direction = dir, Items = items, 
                 XOffsets = xs, YPositions = ys, Length = 0,
                 PrevItems = items, PrevXOffsets = pxs, PrevYPositions = pys, PrevLength = 0,
+
+                InsertedAtTailThisTick = 0
             };
         }
     }

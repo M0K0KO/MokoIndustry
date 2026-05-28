@@ -88,22 +88,13 @@ namespace MokoIndustry.Belt
 
                 float ysVisual = ysCurrentN;
                 float xsVisual = xsCurrentN;
-                if (prevVisible)
+                int srcIdxPrev = GetPreviousItemIndex(srcIdxCurrent, belt.InsertedAtTailThisTick != 0);
+                if (prevVisible && srcIdxPrev >= 0 && srcIdxPrev < prevLen)
                 {
-                    int srcIdxPrev = GetPreviousItemIndex(
-                                            i,
-                                            srcIdxCurrent,
-                                            currentLen,
-                                            prevLen,
-                                            belt.Items[srcIdxCurrent],
-                                            belt.PrevItems);
-                    if (srcIdxPrev >= 0 && srcIdxPrev < prevLen)
-                    {
-                        float ysPrevN = belt.PrevYPositions[srcIdxPrev] / 255f;
-                        float xsPrevN = belt.PrevXOffsets[srcIdxPrev] / 127f;
-                        ysVisual = math.lerp(ysPrevN, ysCurrentN, Alpha);
-                        xsVisual = math.lerp(xsPrevN, xsCurrentN, Alpha);
-                    }
+                    float ysPrevN = belt.PrevYPositions[srcIdxPrev] / 255f;
+                    float xsPrevN = belt.PrevXOffsets[srcIdxPrev] / 127f;
+                    ysVisual = math.lerp(ysPrevN, ysCurrentN, Alpha);
+                    xsVisual = math.lerp(xsPrevN, xsCurrentN, Alpha);
                 }
                 else if (belt.YPositions[srcIdxCurrent] <= BeltConstants.SpeedPerTick)
                 {
@@ -128,32 +119,14 @@ namespace MokoIndustry.Belt
                 color.Value = ItemColor(item);
             }
 
-            private static int GetPreviousItemIndex(
-               int renderIndex,
-               int currentItemIndex,
-               byte currentLen,
-               byte prevLen,
-               byte currentItem,
-               FixedList32Bytes<byte> prevItems)
+            private static int GetPreviousItemIndex(int currentItemIndex, bool insertedAtTailThisTick)
             {
-                int preferred = currentLen < prevLen
-                    ? currentItemIndex
-                    : prevLen - 1 - renderIndex;
-
-                if (preferred >= 0 && preferred < prevLen && prevItems[preferred] == currentItem)
+                if (!insertedAtTailThisTick)
                 {
-                    return preferred;
+                    return currentItemIndex;
                 }
 
-                for (int previousIndex = 0; previousIndex < prevLen; previousIndex++)
-                {
-                    if (prevItems[previousIndex] == currentItem)
-                    {
-                        return previousIndex;
-                    }
-                }
-
-                return preferred;
+                return currentItemIndex - 1;
             }
 
             private static float4 ItemColor(ItemId item)

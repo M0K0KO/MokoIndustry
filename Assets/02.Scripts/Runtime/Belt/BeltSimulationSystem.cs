@@ -5,6 +5,7 @@ using MokoIndustry.Foundation.Grid;
 using MokoIndustry.Foundation.Input;
 using MokoIndustry.Logistics;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -319,6 +320,7 @@ namespace MokoIndustry.Belt
                 belt.PrevYPositions = belt.YPositions;
                 belt.PrevXOffsets = belt.XOffsets;
                 belt.PrevLength = belt.Length;
+                belt.InsertedAtTailThisTick = 0;
 
                 if (!CellToIndex.TryGetValue(gridPos.Cell, out int idx))
                     return;
@@ -355,6 +357,7 @@ namespace MokoIndustry.Belt
                     && (belt.Length == 0 || belt.YPositions[0] >= BeltConstants.ItemSpace))
                 {
                     belt.InsertAtTail(incoming, 0, AcceptedInY[idx]);
+                    belt.InsertedAtTailThisTick = 1;
                 }
             }
 

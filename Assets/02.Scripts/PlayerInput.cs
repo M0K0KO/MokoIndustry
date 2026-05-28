@@ -138,6 +138,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
+                    ""name"": ""SelectRouter"",
+                    ""type"": ""Button"",
+                    ""id"": ""a4977460-377f-4b2e-89c0-53b8dace3603"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""Rotate"",
                     ""type"": ""Button"",
                     ""id"": ""3e0e285c-33c1-4acd-a5fc-1f9cd7f1fc04"",
@@ -233,6 +242,17 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""DebugInject"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7634a8b8-7299-431f-a96d-be523f2b8024"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SelectRouter"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -246,6 +266,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_Gameplay_PointerPosition = m_Gameplay.FindAction("PointerPosition", throwIfNotFound: true);
         m_Gameplay_SelectDummy = m_Gameplay.FindAction("SelectDummy", throwIfNotFound: true);
         m_Gameplay_SelectBelt = m_Gameplay.FindAction("SelectBelt", throwIfNotFound: true);
+        m_Gameplay_SelectRouter = m_Gameplay.FindAction("SelectRouter", throwIfNotFound: true);
         m_Gameplay_Rotate = m_Gameplay.FindAction("Rotate", throwIfNotFound: true);
         m_Gameplay_DebugInject = m_Gameplay.FindAction("DebugInject", throwIfNotFound: true);
     }
@@ -333,6 +354,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_PointerPosition;
     private readonly InputAction m_Gameplay_SelectDummy;
     private readonly InputAction m_Gameplay_SelectBelt;
+    private readonly InputAction m_Gameplay_SelectRouter;
     private readonly InputAction m_Gameplay_Rotate;
     private readonly InputAction m_Gameplay_DebugInject;
     /// <summary>
@@ -366,6 +388,10 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/SelectBelt".
         /// </summary>
         public InputAction @SelectBelt => m_Wrapper.m_Gameplay_SelectBelt;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/SelectRouter".
+        /// </summary>
+        public InputAction @SelectRouter => m_Wrapper.m_Gameplay_SelectRouter;
         /// <summary>
         /// Provides access to the underlying input action "Gameplay/Rotate".
         /// </summary>
@@ -415,6 +441,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @SelectBelt.started += instance.OnSelectBelt;
             @SelectBelt.performed += instance.OnSelectBelt;
             @SelectBelt.canceled += instance.OnSelectBelt;
+            @SelectRouter.started += instance.OnSelectRouter;
+            @SelectRouter.performed += instance.OnSelectRouter;
+            @SelectRouter.canceled += instance.OnSelectRouter;
             @Rotate.started += instance.OnRotate;
             @Rotate.performed += instance.OnRotate;
             @Rotate.canceled += instance.OnRotate;
@@ -447,6 +476,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @SelectBelt.started -= instance.OnSelectBelt;
             @SelectBelt.performed -= instance.OnSelectBelt;
             @SelectBelt.canceled -= instance.OnSelectBelt;
+            @SelectRouter.started -= instance.OnSelectRouter;
+            @SelectRouter.performed -= instance.OnSelectRouter;
+            @SelectRouter.canceled -= instance.OnSelectRouter;
             @Rotate.started -= instance.OnRotate;
             @Rotate.performed -= instance.OnRotate;
             @Rotate.canceled -= instance.OnRotate;
@@ -528,6 +560,13 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSelectBelt(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SelectRouter" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSelectRouter(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Rotate" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

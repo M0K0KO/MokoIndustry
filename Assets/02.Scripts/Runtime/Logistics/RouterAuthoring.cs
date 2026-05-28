@@ -1,6 +1,5 @@
 using MokoIndustry.Foundation.Build;
 using MokoIndustry.Foundation.Common;
-using MokoIndustry.Logistics;
 using Unity.Entities;
 using UnityEngine;
 
@@ -9,8 +8,6 @@ namespace MokoIndustry.Logistics
 {
     public class RouterAuthoring : MonoBehaviour
     {
-        [SerializeField] private GameObject routerPrefab;
-
         public class Baker : Baker<RouterAuthoring>
         {
             public override void Bake(RouterAuthoring authoring)

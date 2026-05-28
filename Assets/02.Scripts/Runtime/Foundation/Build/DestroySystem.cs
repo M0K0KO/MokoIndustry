@@ -10,14 +10,13 @@ using Unity.Mathematics;
 namespace MokoIndustry.Foundation.Build
 {
     [UpdateInGroup(typeof(CommandApplySystemGroup))]
-    [UpdateAfter(typeof(GridOccupancyRegisterSystem))]
     [UpdateAfter(typeof(ConnectionSystem))]
     public partial struct DestroySystem : ISystem
     {
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<GridOccupancySingleton>();
-            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem>();
+            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
 
         public void OnUpdate(ref SystemState state)
@@ -32,6 +31,8 @@ namespace MokoIndustry.Foundation.Build
                 Occupancy = occ.Map,
                 ECB = ecb
             }.Schedule(state.Dependency);
+
+            state.Dependency.Complete();
         }
 
         [BurstCompile]

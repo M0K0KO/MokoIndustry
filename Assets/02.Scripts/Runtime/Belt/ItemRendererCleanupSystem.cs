@@ -5,7 +5,6 @@ using Unity.Burst;
 using Unity.Entities;
 
 [UpdateInGroup(typeof(FoundationSystemGroup))]
-[UpdateAfter(typeof(DestroySystem))]
 public partial struct ItemRendererCleanupSystem : ISystem
 {
     [BurstCompile]

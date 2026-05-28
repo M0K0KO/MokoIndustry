@@ -70,6 +70,8 @@ namespace MokoIndustry.Logistics
             }.Schedule(rebuildHandle);
 
             state.Dependency = originEntities.Dispose(clearHandle);
+
+            state.Dependency.Complete();
         }
 
         [BurstCompile]

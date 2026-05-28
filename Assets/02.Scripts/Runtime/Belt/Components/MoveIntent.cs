@@ -7,5 +7,8 @@ namespace MokoIndustry.Belt
         public ItemId Item;
 
         public byte Priority;
+
+        // round-robin
+        public byte SourceChosenDir;
     }
 }

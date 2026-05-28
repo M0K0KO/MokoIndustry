@@ -1,7 +1,9 @@
 using MokoIndustry.Foundation;
 using MokoIndustry.Foundation.Build;
 using MokoIndustry.Foundation.Common;
+using MokoIndustry.Foundation.Grid;
 using MokoIndustry.Foundation.Input;
+using MokoIndustry.Logistics;
 using System.Collections.Generic;
 using Unity.Burst;
 using Unity.Collections;
@@ -17,6 +19,7 @@ namespace MokoIndustry.Belt
     public partial struct BeltSimulationSystem : ISystem
     {
         private EntityQuery _beltQuery;
+        private EntityQuery _routerQuery;
 
         public void OnCreate(ref SystemState state)
         {
@@ -24,64 +27,105 @@ namespace MokoIndustry.Belt
                 .WithAll<BeltTag, BeltSegment, GridPosition>()
                 .Build();
 
-            state.RequireForUpdate(_beltQuery);
+            _routerQuery = SystemAPI.QueryBuilder()
+                .WithAll<RouterTag, RouterSegment, GridPosition, IOPort>()
+                .Build();
+
+            state.RequireForUpdate<GridOccupancySingleton>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            int count = _beltQuery.CalculateEntityCount();
-            if (count == 0) return;
+            int beltCount = _beltQuery.CalculateEntityCount();
+            int routerCount = _routerQuery.CalculateEntityCount();
+            int total = beltCount + routerCount;
+            if (total == 0) return;
 
-            var snapshots = new NativeArray<BeltSnapshot>(count, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
-            var cellToIndex = new NativeParallelHashMap<int2, int>(count, Allocator.TempJob);
-            var intents = new NativeList<MoveIntent>(count, Allocator.TempJob);
-            var acceptedOut = new NativeArray<byte>(count, Allocator.TempJob, NativeArrayOptions.ClearMemory);
-            var acceptedIn = new NativeArray<ItemId>(count, Allocator.TempJob, NativeArrayOptions.ClearMemory);
+            var snapshots = new NativeArray<BeltSnapshot>(total, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+            var cellToIndex = new NativeParallelHashMap<int2, int>(total, Allocator.TempJob);
+            var intents = new NativeList<MoveIntent>(total, Allocator.TempJob);
+            var acceptedOut = new NativeArray<byte>(total, Allocator.TempJob, NativeArrayOptions.ClearMemory);
+            var acceptedIn = new NativeArray<ItemId>(total, Allocator.TempJob, NativeArrayOptions.ClearMemory);
+            var acceptedOutDir = new NativeArray<byte>(total, Allocator.TempJob, NativeArrayOptions.ClearMemory);
 
-            var h1 = new SnapshotJob
+
+
+            var h1a = new BeltSnapshotJob
             {
                 Snapshots = snapshots,
                 CellToIndex = cellToIndex.AsParallelWriter(),
             }.ScheduleParallel(_beltQuery, state.Dependency);
 
-            var h2 = new IntentJob
+            var h1b = new RouterSnapshotJob
+            {
+                Snapshots = snapshots,
+                CellToIndex = cellToIndex.AsParallelWriter(),
+                IndexOffset = beltCount,
+            }.ScheduleParallel(_routerQuery, h1a);
+
+
+
+
+            var h2a = new BeltIntentJob
             {
                 Snapshots = snapshots,
                 CellToIndex = cellToIndex,
                 Intents = intents.AsParallelWriter(),
-            }.ScheduleParallel(_beltQuery, h1);
+            }.ScheduleParallel(_beltQuery, h1b);
+
+            var h2b = new RouterIntentJob
+            {
+                Snapshots = snapshots,
+                CellToIndex = cellToIndex,
+                Intents = intents.AsParallelWriter(),
+                IndexOffset = beltCount,
+            }.ScheduleParallel(_routerQuery, h2a);
+
+
 
             var h3 = new ResolveJob
             {
                 Intents = intents,
                 AcceptedOut = acceptedOut,
                 AcceptedIn = acceptedIn,
-            }.Schedule(h2);
+                AcceptedOutDir = acceptedOutDir,
+            }.Schedule(h2b);
 
-            var h4 = new ApplyJob
+
+
+            var h4a = new BeltApplyJob
             {
                 CellToIndex = cellToIndex,
                 AcceptedOut = acceptedOut,
                 AcceptedIn = acceptedIn,
             }.ScheduleParallel(_beltQuery, h3);
 
-            h4.Complete();
+            var h4b = new RouterApplyJob
+            {
+                CellToIndex = cellToIndex,
+                AcceptedOut = acceptedOut,
+                AcceptedIn = acceptedIn,
+                AcceptedOutDir = acceptedOutDir,
+            }.ScheduleParallel(_routerQuery, h4a);
 
-            var d1 = snapshots.Dispose(h4);
-            var d2 = cellToIndex.Dispose(h4);
-            var d3 = intents.Dispose(h4);
-            var d4 = acceptedOut.Dispose(h4);
-            var d5 = acceptedIn.Dispose(h4);
+            h4b.Complete();
+
+            var d1 = snapshots.Dispose(h4b);
+            var d2 = cellToIndex.Dispose(h4b);
+            var d3 = intents.Dispose(h4b);
+            var d4 = acceptedOut.Dispose(h4b);
+            var d5 = acceptedIn.Dispose(h4b);
+            var d6 = acceptedOutDir.Dispose(h4b);
 
             state.Dependency = JobHandle.CombineDependencies(
                 JobHandle.CombineDependencies(d1, d2, d3),
-                JobHandle.CombineDependencies(d4, d5)
+                JobHandle.CombineDependencies(d4, d5, d6)
             );
         }
 
         [BurstCompile]
-        private partial struct SnapshotJob : IJobEntity
+        private partial struct BeltSnapshotJob : IJobEntity
         {
             [NativeDisableParallelForRestriction] public NativeArray<BeltSnapshot> Snapshots;
             public NativeParallelHashMap<int2, int>.ParallelWriter CellToIndex;
@@ -98,7 +142,38 @@ namespace MokoIndustry.Belt
         }
 
         [BurstCompile]
-        private partial struct IntentJob : IJobEntity
+        private partial struct RouterSnapshotJob : IJobEntity
+        {
+            [NativeDisableParallelForRestriction] public NativeArray<BeltSnapshot> Snapshots;
+            public NativeParallelHashMap<int2, int>.ParallelWriter CellToIndex;
+            public int IndexOffset;
+
+            void Execute(
+                [EntityIndexInQuery] int localIdx,
+                Entity entity,
+                in RouterSegment router,
+                in GridPosition gridPos)
+            {
+                int idx = IndexOffset + localIdx;
+
+                byte len = (byte)router.Buffer.Length;
+
+                Snapshots[idx] = new BeltSnapshot
+                {
+                    Entity = entity,
+                    Kind = BeltSnapshot.KindRouter,
+
+                    HeadItem = (len == 0) ? ItemId.None : (ItemId)router.Buffer[0],
+                    ReadyToOutput = len > 0,
+                    CanAcceptIn = len < RouterSegment.Capacity,
+                };
+
+                CellToIndex.TryAdd(gridPos.Cell, idx);
+            }
+        }
+
+        [BurstCompile]
+        private partial struct BeltIntentJob : IJobEntity
         {
             [ReadOnly] public NativeArray<BeltSnapshot> Snapshots;
             [ReadOnly] public NativeParallelHashMap<int2, int> CellToIndex;
@@ -133,10 +208,55 @@ namespace MokoIndustry.Belt
         }
 
         [BurstCompile]
-        private struct ResolveJob : IJob
+        private partial struct RouterIntentJob : IJobEntity
+        {
+            [ReadOnly] public NativeArray<BeltSnapshot> Snapshots;
+            [ReadOnly] public NativeParallelHashMap<int2, int> CellToIndex;
+            public NativeList<MoveIntent>.ParallelWriter Intents;
+            public int IndexOffset;
+
+            void Execute(
+                [EntityIndexInQuery] int localIdx,
+                in RouterSegment router,
+                in IOPort port,
+                in GridPosition gridPos)
+            {
+                int idx = IndexOffset + localIdx;
+                var src = Snapshots[idx];
+
+                if (!src.ReadyToOutput) return;
+
+                for (int step = 0; step < 4; step++)
+                {
+                    int d = (router.RoundRobinPtr + step) & 3;
+                    if (!Direction4Extensions.Has(port.OutputMask, d)) continue;
+
+                    int2 nextCell = gridPos.Cell + Direction4Extensions.ToOffset((Direction4)d);
+                    if (!CellToIndex.TryGetValue(nextCell, out int destIdx)) continue;
+                    if (destIdx == idx) continue;
+
+                    var dest = Snapshots[destIdx];
+                    if (!dest.CanAcceptIn) continue;
+
+                    Intents.AddNoResize(new MoveIntent
+                    {
+                        SourceIdx = idx,
+                        DestIdx = destIdx,
+                        Item = src.HeadItem,
+                        Priority = (byte)d,
+                        SourceChosenDir = (byte)d,
+                    });
+                    return;
+                }
+            }
+        }
+
+        [BurstCompile]
+        private partial struct ResolveJob : IJob
         {
             public NativeList<MoveIntent> Intents;
             public NativeArray<byte> AcceptedOut;
+            public NativeArray<byte> AcceptedOutDir;
             public NativeArray<ItemId> AcceptedIn;
 
             public void Execute()
@@ -150,6 +270,7 @@ namespace MokoIndustry.Belt
                 {
                     var winner = Intents[i];
                     AcceptedOut[winner.SourceIdx] = 1;
+                    AcceptedOutDir[winner.SourceIdx] = winner.SourceChosenDir;
                     AcceptedIn[winner.DestIdx] = winner.Item;
 
                     int destIdx = winner.DestIdx;
@@ -167,12 +288,14 @@ namespace MokoIndustry.Belt
             {
                 int c = a.DestIdx.CompareTo(b.DestIdx);
                 if (c != 0) return c;
-                return a.Priority.CompareTo(b.Priority);
+                c = a.Priority.CompareTo(b.Priority);
+                if (c != 0) return c;
+                return a.SourceIdx.CompareTo(b.SourceIdx); // tie breaker
             }
         }
 
         [BurstCompile]
-        private partial struct ApplyJob : IJobEntity
+        private partial struct BeltApplyJob : IJobEntity
         {
             [ReadOnly] public NativeParallelHashMap<int2, int> CellToIndex;
             [ReadOnly] public NativeArray<byte>   AcceptedOut;
@@ -219,6 +342,38 @@ namespace MokoIndustry.Belt
                     && (belt.Length == 0 || belt.YPositions[0] >= BeltConstants.ItemSpace))
                 {
                     belt.InsertAtTail(incoming, 0);
+                }
+            }
+        }
+
+        [BurstCompile]
+        private partial struct RouterApplyJob : IJobEntity
+        {
+            [ReadOnly] public NativeParallelHashMap<int2, int> CellToIndex;
+            [ReadOnly] public NativeArray<byte> AcceptedOut;
+            [ReadOnly] public NativeArray<ItemId> AcceptedIn;
+            [ReadOnly] public NativeArray<byte> AcceptedOutDir;
+
+            void Execute(
+               ref RouterSegment router,
+               in GridPosition gridPos)
+            {
+                if (!CellToIndex.TryGetValue(gridPos.Cell, out int idx))
+                    return;
+
+                bool outgoing = AcceptedOut[idx] != 0;
+                ItemId incoming = AcceptedIn[idx];
+
+                if (outgoing && router.Buffer.Length > 0)
+                {
+                    router.Buffer.RemoveAt(0);
+                    int chosenDir = AcceptedOutDir[idx];
+                    router.RoundRobinPtr = (byte)((chosenDir + 1) & 3);
+                }
+
+                if (incoming != ItemId.None && router.Buffer.Length < RouterSegment.Capacity)
+                {
+                    router.Buffer.Add((byte)incoming);
                 }
             }
         }

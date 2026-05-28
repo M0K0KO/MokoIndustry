@@ -119,7 +119,9 @@ namespace MokoIndustry.Foundation.Build
             in InputCommand cmd,
             in GridOccupancySingleton occupancy)
         {
-            if (!occupancy.Map.TryGetValue(cmd.Cell, out var entity)) return;
+            if (!occupancy.Map.TryGetValue(cmd.Cell, out var entity))
+                return;
+
             if (entity != Entity.Null)
                 ecb.SetComponentEnabled<PendingDestroyTag>(entity, true);
         }

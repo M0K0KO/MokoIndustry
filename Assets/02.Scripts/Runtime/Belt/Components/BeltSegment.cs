@@ -23,7 +23,7 @@ namespace MokoIndustry.Belt
 
         public byte PrevLength;
 
-        public void InsertAtTail(ItemId item, sbyte xOffset)
+        public void InsertAtTail(ItemId item, sbyte xOffset, byte startY)
         {
             for (int i = Length; i > 0; i--)
             {
@@ -33,7 +33,7 @@ namespace MokoIndustry.Belt
             }
             Items[0] = (byte)item;
             XOffsets[0] = xOffset;
-            YPositions[0] = 0;
+            YPositions[0] = startY;
             Length++;
         }
 

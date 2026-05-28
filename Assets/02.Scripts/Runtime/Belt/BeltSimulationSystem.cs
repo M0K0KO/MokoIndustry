@@ -48,6 +48,7 @@ namespace MokoIndustry.Belt
             var acceptedOut = new NativeArray<byte>(total, Allocator.TempJob, NativeArrayOptions.ClearMemory);
             var acceptedIn = new NativeArray<ItemId>(total, Allocator.TempJob, NativeArrayOptions.ClearMemory);
             var acceptedOutDir = new NativeArray<byte>(total, Allocator.TempJob, NativeArrayOptions.ClearMemory);
+            var acceptedInY = new NativeArray<byte>(total, Allocator.TempJob, NativeArrayOptions.ClearMemory);
 
 
 
@@ -90,6 +91,7 @@ namespace MokoIndustry.Belt
                 AcceptedOut = acceptedOut,
                 AcceptedIn = acceptedIn,
                 AcceptedOutDir = acceptedOutDir,
+                AcceptedInY = acceptedInY,
             }.Schedule(h2b);
 
 
@@ -99,6 +101,7 @@ namespace MokoIndustry.Belt
                 CellToIndex = cellToIndex,
                 AcceptedOut = acceptedOut,
                 AcceptedIn = acceptedIn,
+                AcceptedInY = acceptedInY,
             }.ScheduleParallel(_beltQuery, h3);
 
             var h4b = new RouterApplyJob
@@ -116,11 +119,13 @@ namespace MokoIndustry.Belt
             var d3 = intents.Dispose(h4b);
             var d4 = acceptedOut.Dispose(h4b);
             var d5 = acceptedIn.Dispose(h4b);
-            var d6 = acceptedOutDir.Dispose(h4b);
+            var d6 = acceptedInY.Dispose(h4b);
+            var d7 = acceptedOutDir.Dispose(h4b);
 
             state.Dependency = JobHandle.CombineDependencies(
                 JobHandle.CombineDependencies(d1, d2, d3),
-                JobHandle.CombineDependencies(d4, d5, d6)
+                JobHandle.CombineDependencies(d4, d5, d6),
+                d7
             );
         }
 
@@ -195,12 +200,16 @@ namespace MokoIndustry.Belt
 
                 if (!dest.CanAcceptIn) return;
 
+                int overflow = src.HeadY + BeltConstants.SpeedPerTick - BeltConstants.MaxPosition;
+                byte carry = (byte)math.max(0, overflow);
+
                 Intents.AddNoResize(new MoveIntent
                 {
                     SourceIdx = idx,
                     DestIdx = destIdx,
                     Item = src.HeadItem,
                     Priority = (byte)src.Direction,
+                    CarryY = carry
                 });
             }
         }
@@ -255,6 +264,7 @@ namespace MokoIndustry.Belt
             public NativeArray<byte> AcceptedOut;
             public NativeArray<byte> AcceptedOutDir;
             public NativeArray<ItemId> AcceptedIn;
+            public NativeArray<byte> AcceptedInY;
 
             public void Execute()
             {
@@ -269,6 +279,7 @@ namespace MokoIndustry.Belt
                     AcceptedOut[winner.SourceIdx] = 1;
                     AcceptedOutDir[winner.SourceIdx] = winner.SourceChosenDir;
                     AcceptedIn[winner.DestIdx] = winner.Item;
+                    AcceptedInY[winner.DestIdx] = winner.CarryY;
                     int destIdx = winner.DestIdx;
                     i++;
 
@@ -296,6 +307,7 @@ namespace MokoIndustry.Belt
             [ReadOnly] public NativeParallelHashMap<int2, int> CellToIndex;
             [ReadOnly] public NativeArray<byte>   AcceptedOut;
             [ReadOnly] public NativeArray<ItemId> AcceptedIn;
+            [ReadOnly] public NativeArray<byte> AcceptedInY;
 
             void Execute(
                 ref BeltSegment belt,
@@ -337,7 +349,8 @@ namespace MokoIndustry.Belt
                     && belt.Length < BeltConstants.Capacity 
                     && (belt.Length == 0 || belt.YPositions[0] >= BeltConstants.ItemSpace))
                 {
-                    belt.InsertAtTail(incoming, 0);
+                    UnityEngine.Debug.Log($"Insert at startY={AcceptedInY[idx]} (incoming={incoming})");
+                    belt.InsertAtTail(incoming, 0, AcceptedInY[idx]);
                 }
             }
         }

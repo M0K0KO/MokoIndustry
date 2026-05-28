@@ -10,5 +10,7 @@ namespace MokoIndustry.Belt
 
         // round-robin
         public byte SourceChosenDir;
+
+        public byte CarryY;
     }
 }

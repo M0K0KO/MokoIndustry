@@ -139,7 +139,7 @@ namespace MokoIndustry.Foundation.Build
             if (belt.Length >= BeltConstants.Capacity) return;
             if (belt.Length > 0 && belt.YPositions[0] < BeltConstants.ItemSpace) return;
 
-            belt.InsertAtTail(ItemId.Ore, 0);
+            belt.InsertAtTail(ItemId.Ore, 0, 0);
         }
     }
 }

@@ -19,6 +19,7 @@ namespace MokoIndustry.Belt
         public FixedList32Bytes<byte> Items;
         public FixedList32Bytes<sbyte> XOffsets;
         public FixedList32Bytes<byte> YPositions;
+        public byte HeadY;
         public byte Length;
         public byte MinPosition;
 
@@ -48,6 +49,7 @@ namespace MokoIndustry.Belt
                 Items = belt.Items,
                 XOffsets = belt.XOffsets,
                 YPositions = belt.YPositions,
+                HeadY = (len == 0) ? (byte)0 : belt.YPositions[len - 1],
                 Length = len,
                 MinPosition = minPos
             };

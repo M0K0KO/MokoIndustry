@@ -31,20 +31,24 @@ namespace MokoIndustry.Logistics
         {
             var occ = SystemAPI.GetSingleton<GridOccupancySingleton>();
 
+            var dirty = new NativeParallelHashSet<int2>(64, Allocator.TempJob);
             var originEntities = new NativeList<Entity>(16, Allocator.TempJob);
-            var dirty = new NativeParallelHashSet<int2>(64, Allocator.Temp);
 
-            var collectHandle = new CollectDirtyCellsJob
+            var collectBuilt = new CollectDirtyCellsJob
             {
                 Dirty = dirty.AsParallelWriter(),
                 Origins = originEntities.AsParallelWriter()
             }.ScheduleParallel(state.Dependency);
-            collectHandle.Complete();
+
+            var collectDestroy = new CollectDestroyNeighborsJob
+            {
+                Dirty = dirty.AsParallelWriter()
+            }.ScheduleParallel(collectBuilt);
+
+            collectDestroy.Complete();
 
             var dirtyCells = dirty.ToNativeArray(Allocator.TempJob);
             dirty.Dispose();
-
-
 
             var rebuildHandle = new RebuildPortsJob
             {
@@ -54,15 +58,17 @@ namespace MokoIndustry.Logistics
                 IOLookup = SystemAPI.GetComponentLookup<IOPort>(false),
                 BeltLookup = SystemAPI.GetComponentLookup<BeltSegment>(true),
                 RouterLookup = SystemAPI.GetComponentLookup<RouterTag>(true),
-            }.Schedule(dirtyCells.Length, 32, collectHandle);
-            rebuildHandle = dirtyCells.Dispose(rebuildHandle);
+                DestroyLookup = SystemAPI.GetComponentLookup<PendingDestroyTag>(true),
+            }.Schedule(dirtyCells.Length, 32, collectDestroy);
 
+            rebuildHandle = dirtyCells.Dispose(rebuildHandle);
 
             var clearHandle = new ClearNewlyBuiltJob
             {
                 Origins = originEntities,
                 TagLookup = SystemAPI.GetComponentLookup<NewlyBuiltTag>(false)
             }.Schedule(rebuildHandle);
+
             state.Dependency = originEntities.Dispose(clearHandle);
         }
 
@@ -88,6 +94,22 @@ namespace MokoIndustry.Logistics
         }
 
         [BurstCompile]
+        [WithAll(typeof(PendingDestroyTag))]
+        private partial struct CollectDestroyNeighborsJob : IJobEntity
+        {
+            public NativeParallelHashSet<int2>.ParallelWriter Dirty;
+
+            private void Execute(in GridPosition pos)
+            {
+                var c = pos.Cell;
+                Dirty.Add(c + new int2(0, 1));   // North
+                Dirty.Add(c + new int2(1, 0));   // East
+                Dirty.Add(c + new int2(0, -1));  // South
+                Dirty.Add(c + new int2(-1, 0));  // West
+            }
+        }
+
+        [BurstCompile]
         private partial struct RebuildPortsJob : IJobParallelFor
         {
             [ReadOnly] public NativeArray<int2> DirtyCells;
@@ -98,6 +120,7 @@ namespace MokoIndustry.Logistics
 
             [ReadOnly] public ComponentLookup<BeltSegment> BeltLookup;
             [ReadOnly] public ComponentLookup<RouterTag> RouterLookup;
+            [ReadOnly] public ComponentLookup<PendingDestroyTag> DestroyLookup;
 
             public void Execute(int index)
             {
@@ -107,6 +130,9 @@ namespace MokoIndustry.Logistics
                     return;
 
                 if (!IOLookup.HasComponent(e))
+                    return;
+
+                if (IsDestroying(e))
                     return;
 
                 IOPort port = default;
@@ -131,8 +157,10 @@ namespace MokoIndustry.Logistics
                         if (!IOLookup.HasComponent(ne))
                             continue;
 
-                        var neighborDirToMe =
-                            Direction4Extensions.Opposite((Direction4)d);
+                        if (IsDestroying(ne))
+                            return;
+
+                        var neighborDirToMe = Direction4Extensions.Opposite((Direction4)d);
 
                         if (BeltLookup.HasComponent(ne) &&
                             BeltLookup[ne].Direction == neighborDirToMe)
@@ -148,6 +176,9 @@ namespace MokoIndustry.Logistics
 
                 IOLookup[e] = port;
             }
+
+            private bool IsDestroying(Entity e)
+                => DestroyLookup.HasComponent(e) && DestroyLookup.IsComponentEnabled(e);
 
             private static int2 Offset(int d)
             {

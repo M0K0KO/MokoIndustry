@@ -96,8 +96,6 @@ namespace MokoIndustry.Foundation.Build
             };
             if (prefab == Entity.Null) return;
 
-            occupancy.Map.Add(cmd.Cell, Entity.Null);
-
             var entity = ecb.Instantiate(prefab);
             ecb.SetComponent(entity, new GridPosition { Cell = cmd.Cell });
             ecb.SetComponent(entity, LocalTransform.FromPositionRotation(
@@ -122,7 +120,6 @@ namespace MokoIndustry.Foundation.Build
             in GridOccupancySingleton occupancy)
         {
             if (!occupancy.Map.TryGetValue(cmd.Cell, out var entity)) return;
-            occupancy.Map.Remove(cmd.Cell);
             if (entity != Entity.Null)
                 ecb.SetComponentEnabled<PendingDestroyTag>(entity, true);
         }

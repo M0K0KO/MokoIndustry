@@ -66,7 +66,6 @@ namespace MokoIndustry.Belt
                 AcceptedIn = acceptedIn,
             }.ScheduleParallel(_beltQuery, h3);
 
-            //state.Dependency = h4;
             h4.Complete();
 
             var d1 = snapshots.Dispose(h4);
@@ -195,7 +194,7 @@ namespace MokoIndustry.Belt
 
                 if (outgoing) belt.RemoveHead();
 
-                for (int i =belt.Length-1; i>=0; i--)
+                for (int i = belt.Length-1; i >= 0; i--)
                 {
                     int frontY = (i == belt.Length - 1)
                         ? BeltConstants.MaxPosition + 1

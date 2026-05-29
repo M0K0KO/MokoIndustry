@@ -3,6 +3,7 @@ using MokoIndustry.Foundation.Build;
 using MokoIndustry.Foundation.Grid;
 using MokoIndustry.Foundation.Interpolation;
 using MokoIndustry.Foundation.Tick;
+using MokoIndustry.Logistics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -45,6 +46,8 @@ namespace MokoIndustry.Foundation.Determinism
 
             var occupancy = SystemAPI.GetSingleton<GridOccupancySingleton>();
             var beltLookup = SystemAPI.GetComponentLookup<BeltSegment>(true);
+            var routerLookup = SystemAPI.GetComponentLookup<RouterSegment>(true);
+            var portLookup = SystemAPI.GetComponentLookup<IOPort>(true);
 
             var positions = _gridPositionQuery.ToComponentDataArray<GridPosition>(Allocator.TempJob);
             var sortable = new NativeArray<ulong>(positions.Length, Allocator.TempJob);
@@ -63,17 +66,38 @@ namespace MokoIndustry.Foundation.Determinism
 
                 int2 cell = UnpackInt2(packed);
 
-                if (occupancy.Map.TryGetValue(cell, out var entity) && entity != Entity.Null && beltLookup.HasComponent(entity))
+                if (occupancy.Map.TryGetValue(cell, out var entity) && entity != Entity.Null)
                 {
-                    var belt = beltLookup[entity];
-                    hash = FnvCombine(hash, (ulong)(byte)belt.Direction);
-                    hash = FnvCombine(hash, belt.Length);
-
-                    for (int i2 = 0; i2 < belt.Length; i2++)
+                    if (portLookup.HasComponent(entity))
                     {
-                        hash = FnvCombine(hash, belt.Items[i2]);
-                        hash = FnvCombine(hash, (ulong)(byte)belt.XOffsets[i2]);
-                        hash = FnvCombine(hash, belt.YPositions[i2]);
+                        var port = portLookup[entity];
+                        hash = FnvCombine(hash, port.InputMask);
+                        hash = FnvCombine(hash, port.OutputMask);
+                        hash = FnvCombine(hash, port.AcceptFilter);
+                    }
+
+                    if (beltLookup.HasComponent(entity))
+                    {
+                        hash = FnvCombine(hash, 1UL); // type marker: belt
+                        var belt = beltLookup[entity];
+                        hash = FnvCombine(hash, (ulong)(byte)belt.Direction);
+                        hash = FnvCombine(hash, belt.Length);
+                        for (int i2 = 0; i2 < belt.Length; i2++)
+                        {
+                            hash = FnvCombine(hash, belt.Items[i2]);
+                            hash = FnvCombine(hash, (ulong)(byte)belt.XOffsets[i2]);
+                            hash = FnvCombine(hash, belt.YPositions[i2]);
+                        }
+                    }
+                    else if (routerLookup.HasComponent(entity))
+                    {
+                        hash = FnvCombine(hash, 2UL); // type marker: router
+                        var router = routerLookup[entity];
+                        hash = FnvCombine(hash, (ulong)router.Buffer.Length);
+                        for (int i2 = 0; i2 < router.Buffer.Length; i2++)
+                            hash = FnvCombine(hash, router.Buffer[i2]);
+                        hash = FnvCombine(hash, router.RoundRobinPtr);
+                        hash = FnvCombine(hash, router.OutputCooldown);
                     }
                 }
             }

@@ -8,6 +8,7 @@ namespace MokoIndustry.Foundation
         public Entity BeltPrefab;
         public Entity RouterPrefab;
         public Entity MinerPrefab;
+        public Entity SmelterPrefab;
         public Entity ItemRendererPrefab;
     }
 }

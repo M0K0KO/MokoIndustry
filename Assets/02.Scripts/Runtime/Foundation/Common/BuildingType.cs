@@ -7,5 +7,6 @@ namespace MokoIndustry.Foundation.Common
         Belt  = 2,
         Router = 3,
         Miner = 4,
+        Smelter = 5,
     }
 }

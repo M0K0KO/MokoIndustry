@@ -13,6 +13,9 @@ namespace MokoIndustry.Belt
         public ItemId HeadItem;
         public bool ReadyToOutput;
         public bool CanAcceptIn;
+        public byte InputMask;
+        public byte OutputMask;
+        public byte AcceptFilter;
 
         // dedicated fields for belt (ApplyJob will look at these)
         public Direction4 Direction;
@@ -25,6 +28,7 @@ namespace MokoIndustry.Belt
 
         public const byte KindBelt = 0;
         public const byte KindRouter = 1;
+        public const byte KindMachine = 2;
 
         public static BeltSnapshot From(Entity entity, in BeltSegment belt)
         {
@@ -43,6 +47,8 @@ namespace MokoIndustry.Belt
                                     >= BeltConstants.MaxPosition,
                 CanAcceptIn = len < BeltConstants.Capacity &&
                                 minPos >= BeltConstants.ItemSpace,
+                InputMask = Direction4Extensions.Bit(Direction4Extensions.Opposite(belt.Direction)),
+                OutputMask = Direction4Extensions.Bit(belt.Direction),
 
                 // belt fields
                 Direction = belt.Direction,

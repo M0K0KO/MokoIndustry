@@ -175,6 +175,17 @@ namespace MokoIndustry.Logistics
                         {
                             port.InputMask |= Direction4Extensions.Bit(d);
                         }
+                        else if (MachineRecipeRefLookup.HasComponent(ne))
+                        {
+                            var neighborRecipeRef = MachineRecipeRefLookup[ne];
+                            var neighborRecipe = RecipeRegistry.Get(neighborRecipeRef.Id);
+
+                            if (neighborRecipe.Outputs.Length > 0)
+                                port.InputMask |= Direction4Extensions.Bit(d);
+
+                            if (neighborRecipe.Inputs.Length > 0)
+                                port.OutputMask |= Direction4Extensions.Bit(d);
+                        }
                         else
                         {
                             port.OutputMask |= Direction4Extensions.Bit(d);
@@ -187,7 +198,7 @@ namespace MokoIndustry.Logistics
                     var recipe = RecipeRegistry.Get(recipeRef.Id);
 
                     byte inputMask = recipe.Inputs.Length > 0 ? (byte)0b1111 : (byte)0;
-                    byte outputMask = 0b1111;
+                    byte outputMask = recipe.Outputs.Length > 0 ? (byte)0b1111 : (byte)0;
 
                     byte acceptFilter = 0;
                     for (int i = 0; i < recipe.Inputs.Length; i++)

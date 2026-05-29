@@ -147,6 +147,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
+                    ""name"": ""SelectMiner"",
+                    ""type"": ""Button"",
+                    ""id"": ""6b1736b8-5f03-4deb-b1cb-eadd607c736a"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""Rotate"",
                     ""type"": ""Button"",
                     ""id"": ""3e0e285c-33c1-4acd-a5fc-1f9cd7f1fc04"",
@@ -253,6 +262,17 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""SelectRouter"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6f406484-0ce7-40d6-8476-a53d7576174a"",
+                    ""path"": ""<Keyboard>/4"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SelectMiner"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -267,6 +287,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_Gameplay_SelectDummy = m_Gameplay.FindAction("SelectDummy", throwIfNotFound: true);
         m_Gameplay_SelectBelt = m_Gameplay.FindAction("SelectBelt", throwIfNotFound: true);
         m_Gameplay_SelectRouter = m_Gameplay.FindAction("SelectRouter", throwIfNotFound: true);
+        m_Gameplay_SelectMiner = m_Gameplay.FindAction("SelectMiner", throwIfNotFound: true);
         m_Gameplay_Rotate = m_Gameplay.FindAction("Rotate", throwIfNotFound: true);
         m_Gameplay_DebugInject = m_Gameplay.FindAction("DebugInject", throwIfNotFound: true);
     }
@@ -355,6 +376,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_SelectDummy;
     private readonly InputAction m_Gameplay_SelectBelt;
     private readonly InputAction m_Gameplay_SelectRouter;
+    private readonly InputAction m_Gameplay_SelectMiner;
     private readonly InputAction m_Gameplay_Rotate;
     private readonly InputAction m_Gameplay_DebugInject;
     /// <summary>
@@ -392,6 +414,10 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/SelectRouter".
         /// </summary>
         public InputAction @SelectRouter => m_Wrapper.m_Gameplay_SelectRouter;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/SelectMiner".
+        /// </summary>
+        public InputAction @SelectMiner => m_Wrapper.m_Gameplay_SelectMiner;
         /// <summary>
         /// Provides access to the underlying input action "Gameplay/Rotate".
         /// </summary>
@@ -444,6 +470,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @SelectRouter.started += instance.OnSelectRouter;
             @SelectRouter.performed += instance.OnSelectRouter;
             @SelectRouter.canceled += instance.OnSelectRouter;
+            @SelectMiner.started += instance.OnSelectMiner;
+            @SelectMiner.performed += instance.OnSelectMiner;
+            @SelectMiner.canceled += instance.OnSelectMiner;
             @Rotate.started += instance.OnRotate;
             @Rotate.performed += instance.OnRotate;
             @Rotate.canceled += instance.OnRotate;
@@ -479,6 +508,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @SelectRouter.started -= instance.OnSelectRouter;
             @SelectRouter.performed -= instance.OnSelectRouter;
             @SelectRouter.canceled -= instance.OnSelectRouter;
+            @SelectMiner.started -= instance.OnSelectMiner;
+            @SelectMiner.performed -= instance.OnSelectMiner;
+            @SelectMiner.canceled -= instance.OnSelectMiner;
             @Rotate.started -= instance.OnRotate;
             @Rotate.performed -= instance.OnRotate;
             @Rotate.canceled -= instance.OnRotate;
@@ -567,6 +599,13 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSelectRouter(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SelectMiner" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSelectMiner(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Rotate" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

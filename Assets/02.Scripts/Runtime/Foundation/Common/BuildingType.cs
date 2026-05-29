@@ -6,5 +6,6 @@ namespace MokoIndustry.Foundation.Common
         Dummy = 1,
         Belt  = 2,
         Router = 3,
+        Miner = 4,
     }
 }

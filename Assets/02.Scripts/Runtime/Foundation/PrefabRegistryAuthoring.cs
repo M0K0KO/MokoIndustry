@@ -9,6 +9,7 @@ namespace MokoIndustry.Foundation
         [SerializeField] private GameObject dummyBuildingPrefab;
         [SerializeField] private GameObject beltPrefab;
         [SerializeField] private GameObject routerPrefab;
+        [SerializeField] private GameObject minerPrefab;
 
         [Header("Item Prefab")]
         [SerializeField] private GameObject itemRendererPrefab;
@@ -30,6 +31,10 @@ namespace MokoIndustry.Foundation
 
                     RouterPrefab = GetEntity(
                         authoring.routerPrefab,
+                        TransformUsageFlags.Dynamic),
+
+                    MinerPrefab = GetEntity(
+                        authoring.minerPrefab,
                         TransformUsageFlags.Dynamic),
 
                     ItemRendererPrefab = GetEntity(

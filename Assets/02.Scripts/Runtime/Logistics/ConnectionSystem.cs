@@ -3,6 +3,7 @@ using MokoIndustry.Foundation.Build;
 using MokoIndustry.Foundation.Common;
 using MokoIndustry.Foundation.Grid;
 using MokoIndustry.Foundation.Input;
+using MokoIndustry.Machine;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -30,6 +31,7 @@ namespace MokoIndustry.Logistics
         public void OnUpdate(ref SystemState state)
         {
             var occ = SystemAPI.GetSingleton<GridOccupancySingleton>();
+            var reg = SystemAPI.GetSingleton<RecipeRegistrySingleton>();
 
             var dirty = new NativeParallelHashSet<int2>(64, Allocator.TempJob);
             var originEntities = new NativeList<Entity>(16, Allocator.TempJob);
@@ -54,10 +56,12 @@ namespace MokoIndustry.Logistics
             {
                 DirtyCells = dirtyCells,
                 Occupancy = occ.Map,
+                RecipeRegistry = reg,
 
                 IOLookup = SystemAPI.GetComponentLookup<IOPort>(false),
                 BeltLookup = SystemAPI.GetComponentLookup<BeltSegment>(true),
                 RouterLookup = SystemAPI.GetComponentLookup<RouterTag>(true),
+                MachineRecipeRefLookup = SystemAPI.GetComponentLookup<MachineRecipeRef>(true),
                 DestroyLookup = SystemAPI.GetComponentLookup<PendingDestroyTag>(true),
             }.Schedule(dirtyCells.Length, 32, collectDestroy);
 
@@ -116,12 +120,14 @@ namespace MokoIndustry.Logistics
         {
             [ReadOnly] public NativeArray<int2> DirtyCells;
             [ReadOnly] public NativeParallelHashMap<int2, Entity> Occupancy;
+            [ReadOnly] public RecipeRegistrySingleton RecipeRegistry;
 
             [NativeDisableParallelForRestriction]
             public ComponentLookup<IOPort> IOLookup;
 
             [ReadOnly] public ComponentLookup<BeltSegment> BeltLookup;
             [ReadOnly] public ComponentLookup<RouterTag> RouterLookup;
+            [ReadOnly] public ComponentLookup<MachineRecipeRef> MachineRecipeRefLookup;
             [ReadOnly] public ComponentLookup<PendingDestroyTag> DestroyLookup;
 
             public void Execute(int index)
@@ -174,6 +180,25 @@ namespace MokoIndustry.Logistics
                             port.OutputMask |= Direction4Extensions.Bit(d);
                         }
                     }
+                }
+                else if (MachineRecipeRefLookup.HasComponent(e))
+                {
+                    var recipeRef = MachineRecipeRefLookup[e];
+                    var recipe = RecipeRegistry.Get(recipeRef.Id);
+
+                    byte inputMask = recipe.Inputs.Length > 0 ? (byte)0b1111 : (byte)0;
+                    byte outputMask = 0b1111;
+
+                    byte acceptFilter = 0;
+                    for (int i = 0; i < recipe.Inputs.Length; i++)
+                        acceptFilter |= (byte)(1 << recipe.Inputs[i].ItemId);
+
+                    port = new IOPort
+                    {
+                        InputMask = inputMask,
+                        OutputMask = outputMask,
+                        AcceptFilter = acceptFilter
+                    };
                 }
 
                 IOLookup[e] = port;

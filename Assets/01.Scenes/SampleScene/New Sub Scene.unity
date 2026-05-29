@@ -210,6 +210,7 @@ MonoBehaviour:
   dummyBuildingPrefab: {fileID: 2399893775034728678, guid: f33f948a242d4ca48b80cce858f2b3eb, type: 3}
   beltPrefab: {fileID: 61913317162290931, guid: 9e846a044cc93a54c99bfc1c6c790f24, type: 3}
   routerPrefab: {fileID: 3907034167024044332, guid: c81c6e973fd8f8548a6ac0f7a755935f, type: 3}
+  minerPrefab: {fileID: 3907034167024044332, guid: a80b1c7123807f947a3a9db2784535b4, type: 3}
   itemRendererPrefab: {fileID: 7085548346591960084, guid: 607038c2d67dabf4aa7a4cbd39cff1f0, type: 3}
 --- !u!1 &757201701
 GameObject:

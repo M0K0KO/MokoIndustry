@@ -4,6 +4,7 @@ using MokoIndustry.Foundation.Grid;
 using MokoIndustry.Foundation.Interpolation;
 using MokoIndustry.Foundation.Tick;
 using MokoIndustry.Logistics;
+using MokoIndustry.Machine;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -49,6 +50,9 @@ namespace MokoIndustry.Foundation.Determinism
             var routerLookup = SystemAPI.GetComponentLookup<RouterSegment>(true);
             var gateLookup = SystemAPI.GetComponentLookup<GateSegment>(true);
             var portLookup = SystemAPI.GetComponentLookup<IOPort>(true);
+
+            var machineLookup = SystemAPI.GetComponentLookup<MachineState>(true);
+            var recipeRefLookup = SystemAPI.GetComponentLookup<MachineRecipeRef>(true);
 
             var positions = _gridPositionQuery.ToComponentDataArray<GridPosition>(Allocator.TempJob);
             var sortable = new NativeArray<ulong>(positions.Length, Allocator.TempJob);
@@ -99,6 +103,23 @@ namespace MokoIndustry.Foundation.Determinism
                             hash = FnvCombine(hash, router.Buffer[i2]);
                         hash = FnvCombine(hash, router.RoundRobinPtr);
                         hash = FnvCombine(hash, router.OutputCooldown);
+                    }
+                    else if (machineLookup.HasComponent(entity))
+                    {
+                        hash = FnvCombine(hash, 3UL); // type marker: machine
+                        var machine = machineLookup[entity];
+                        var recipeRef = recipeRefLookup[entity];
+
+                        hash = FnvCombine(hash, (ulong)(byte)recipeRef.Id);
+                        hash = FnvCombine(hash, machine.ProgressTicks);
+
+                        hash = FnvCombine(hash, (ulong)machine.InputBuffer.Length);
+                        for (int i2 = 0; i2 < machine.InputBuffer.Length; i2++)
+                            hash = FnvCombine(hash, machine.InputBuffer[i2]);
+
+                        hash = FnvCombine(hash, (ulong)machine.OutputBuffer.Length);
+                        for (int i2 = 0; i2 < machine.OutputBuffer.Length; i2++)
+                            hash = FnvCombine(hash, machine.OutputBuffer[i2]);
                     }
                     else if (gateLookup.HasComponent(entity))
                     {

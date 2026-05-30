@@ -47,6 +47,7 @@ namespace MokoIndustry.Foundation.Determinism
             var occupancy = SystemAPI.GetSingleton<GridOccupancySingleton>();
             var beltLookup = SystemAPI.GetComponentLookup<BeltSegment>(true);
             var routerLookup = SystemAPI.GetComponentLookup<RouterSegment>(true);
+            var gateLookup = SystemAPI.GetComponentLookup<GateSegment>(true);
             var portLookup = SystemAPI.GetComponentLookup<IOPort>(true);
 
             var positions = _gridPositionQuery.ToComponentDataArray<GridPosition>(Allocator.TempJob);
@@ -98,6 +99,18 @@ namespace MokoIndustry.Foundation.Determinism
                             hash = FnvCombine(hash, router.Buffer[i2]);
                         hash = FnvCombine(hash, router.RoundRobinPtr);
                         hash = FnvCombine(hash, router.OutputCooldown);
+                    }
+                    else if (gateLookup.HasComponent(entity))
+                    {
+                        hash = FnvCombine(hash, 4UL);   // type marker: gate
+                        var gate = gateLookup[entity];
+                        hash = FnvCombine(hash, (ulong)(byte)gate.Mode);
+                        hash = FnvCombine(hash, (ulong)(byte)gate.Direction);
+                        hash = FnvCombine(hash, gate.OutputCooldown);
+                        hash = FnvCombine(hash, gate.LastSideUsed);
+                        hash = FnvCombine(hash, (ulong)gate.Buffer.Length);
+                        for (int i2 = 0; i2 < gate.Buffer.Length; i2++)
+                            hash = FnvCombine(hash, gate.Buffer[i2]);
                     }
                 }
             }

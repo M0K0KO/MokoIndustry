@@ -100,7 +100,7 @@ namespace MokoIndustry.Belt
                 Snapshots = snapshots,
                 CellToIndex = cellToIndex,
                 Intents = intents.AsParallelWriter(),
-            }.ScheduleParallel(_beltQuery, h1c);
+            }.ScheduleParallel(_beltQuery, h1d);
 
             var h2b = new RouterIntentJob
             {
@@ -135,7 +135,7 @@ namespace MokoIndustry.Belt
                 AcceptedIn = acceptedIn,
                 AcceptedOutDir = acceptedOutDir,
                 AcceptedInY = acceptedInY,
-            }.Schedule(h2c);
+            }.Schedule(h2d);
 
 
 
@@ -180,12 +180,11 @@ namespace MokoIndustry.Belt
             var d5 = acceptedIn.Dispose(h4d);
             var d6 = acceptedInY.Dispose(h4d);
             var d7 = acceptedOutDir.Dispose(h4d);
-            var d8 = acceptedOutDir.Dispose(h4d);
 
             state.Dependency = JobHandle.CombineDependencies(
                 JobHandle.CombineDependencies(d1, d2, d3),
                 JobHandle.CombineDependencies(d4, d5, d6),
-                JobHandle.CombineDependencies(d7, d8)
+                d7
             );
         }
 
@@ -728,6 +727,7 @@ namespace MokoIndustry.Belt
                 if (incoming != ItemId.None && gate.Buffer.Length < GateSegment.Capacity)
                 {
                     gate.Buffer.Add((byte)incoming);
+                    gate.OutputCooldown = BeltConstants.GateOutputInterval;
                 }
             }
         }

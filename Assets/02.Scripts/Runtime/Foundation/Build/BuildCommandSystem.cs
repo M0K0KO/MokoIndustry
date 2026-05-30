@@ -111,7 +111,7 @@ namespace MokoIndustry.Foundation.Build
                 ecb.SetComponent(entity, new IOPort
                 {
                     OutputMask = Direction4Extensions.Bit(cmd.Direction),
-                    InputMask = Direction4Extensions.Bit(Direction4Extensions.Opposite(cmd.Direction)),
+                    InputMask = Direction4Extensions.Except(cmd.Direction),
                     AcceptFilter = 0
                 });
             }

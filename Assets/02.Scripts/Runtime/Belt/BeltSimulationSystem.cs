@@ -60,7 +60,6 @@ namespace MokoIndustry.Belt
             var acceptedInY = new NativeArray<byte>(total, Allocator.TempJob, NativeArrayOptions.ClearMemory);
 
 
-
             var h1a = new BeltSnapshotJob
             {
                 Snapshots = snapshots,
@@ -378,6 +377,8 @@ namespace MokoIndustry.Belt
                 return true;
 
             var incomingDir = Direction4Extensions.Opposite(sourceOutputDir);
+
+            UnityEngine.Debug.Log($"IncomingDirecion : {incomingDir}, DestInputMask : {dest.InputMask}");
             return Direction4Extensions.Has(dest.InputMask, (int)incomingDir);
         }
 

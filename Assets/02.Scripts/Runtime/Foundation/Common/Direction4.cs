@@ -32,8 +32,13 @@ namespace MokoIndustry.Foundation.Common
             _                => 0f,
         };
 
+        public const byte AllDirectionMask = 0b_1111;
+
         public static byte Bit(Direction4 d) => (byte)(1 << (int)d);
         public static byte Bit(int d) => (byte)(1 << d);
+
+        public static byte Except(Direction4 d) => (byte)(AllDirectionMask & ~Bit(d));
+        public static byte Except(int d) => (byte)(AllDirectionMask & ~Bit(d));
 
         public static bool Has(byte mask, Direction4 d) => (mask & Bit(d)) != 0;
         public static bool Has(byte mask, int d) => (mask & Bit(d)) != 0;

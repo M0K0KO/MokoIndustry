@@ -12,6 +12,8 @@ namespace MokoIndustry.Foundation
         [SerializeField] private GameObject minerPrefab;
         [SerializeField] private GameObject smelterPrefab;
         [SerializeField] private GameObject assemblerPrefab;
+        [SerializeField] private GameObject overflowGatePrefab;
+        [SerializeField] private GameObject underflowGatePrefab;
 
         [Header("Item Prefab")]
         [SerializeField] private GameObject itemRendererPrefab;
@@ -45,6 +47,14 @@ namespace MokoIndustry.Foundation
 
                     AssemblerPrefab = GetEntity(
                         authoring.assemblerPrefab,
+                        TransformUsageFlags.Dynamic),
+
+                    OverflowGatePrefab = GetEntity(
+                        authoring.overflowGatePrefab,
+                        TransformUsageFlags.Dynamic),
+
+                    UnderflowGatePrefab = GetEntity(
+                        authoring.underflowGatePrefab,
                         TransformUsageFlags.Dynamic),
 
                     ItemRendererPrefab = GetEntity(

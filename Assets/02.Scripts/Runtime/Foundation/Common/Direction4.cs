@@ -45,5 +45,11 @@ namespace MokoIndustry.Foundation.Common
 
         public static Direction4 Opposite(Direction4 d) => (Direction4)(((int)d + 2) & 3);
         public static Direction4 Opposite(int d) => (Direction4)((d + 2) & 3);
+
+        public static Direction4 RotateCCW(Direction4 d) => (Direction4)(((int)d + 1) & 3);
+        public static Direction4 RotateCW(Direction4 d) => (Direction4)(((int)d + 3) & 3);
+
+        public static Direction4 RotateCCW(int d) => (Direction4)((d + 1) & 3);
+        public static Direction4 RotateCW(int d) => (Direction4)((d + 3) & 3);
     }
 }

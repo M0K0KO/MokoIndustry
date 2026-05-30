@@ -10,6 +10,8 @@ namespace MokoIndustry.Foundation
         public Entity MinerPrefab;
         public Entity SmelterPrefab;
         public Entity AssemblerPrefab;
+        public Entity OverflowGatePrefab;
+        public Entity UnderflowGatePrefab;
         public Entity ItemRendererPrefab;
     }
 }

@@ -1,4 +1,5 @@
 using MokoIndustry.Belt;
+using MokoIndustry.Foundation;
 using MokoIndustry.Foundation.Build;
 using MokoIndustry.Foundation.Common;
 using MokoIndustry.Foundation.Grid;
@@ -61,6 +62,7 @@ namespace MokoIndustry.Logistics
                 IOLookup = SystemAPI.GetComponentLookup<IOPort>(false),
                 BeltLookup = SystemAPI.GetComponentLookup<BeltSegment>(true),
                 RouterLookup = SystemAPI.GetComponentLookup<RouterTag>(true),
+                GateLookup = SystemAPI.GetComponentLookup<GateSegment>(true),
                 MachineRecipeRefLookup = SystemAPI.GetComponentLookup<MachineRecipeRef>(true),
                 DestroyLookup = SystemAPI.GetComponentLookup<PendingDestroyTag>(true),
             }.Schedule(dirtyCells.Length, 32, collectDestroy);
@@ -127,6 +129,7 @@ namespace MokoIndustry.Logistics
 
             [ReadOnly] public ComponentLookup<BeltSegment> BeltLookup;
             [ReadOnly] public ComponentLookup<RouterTag> RouterLookup;
+            [ReadOnly] public ComponentLookup<GateSegment> GateLookup;
             [ReadOnly] public ComponentLookup<MachineRecipeRef> MachineRecipeRefLookup;
             [ReadOnly] public ComponentLookup<PendingDestroyTag> DestroyLookup;
 
@@ -190,6 +193,21 @@ namespace MokoIndustry.Logistics
                             port.OutputMask |= Direction4Extensions.Bit(d);
                         }
                     }
+                }
+                else if (GateLookup.HasComponent(e))
+                {
+                    var dir = GateLookup[e].Direction;
+                    byte backBit = Direction4Extensions.Bit(Direction4Extensions.Opposite(dir));
+                    byte frontBit = Direction4Extensions.Bit(dir);
+                    byte leftBit = Direction4Extensions.Bit(Direction4Extensions.RotateCCW(dir));
+                    byte rightBit = Direction4Extensions.Bit(Direction4Extensions.RotateCW(dir));
+
+                    port = new IOPort
+                    {
+                        InputMask = backBit,
+                        OutputMask = (byte)(frontBit | leftBit | rightBit),
+                        AcceptFilter = 0xFF
+                    };
                 }
                 else if (MachineRecipeRefLookup.HasComponent(e))
                 {

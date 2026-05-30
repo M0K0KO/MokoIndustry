@@ -11,9 +11,9 @@ GameObject:
   - component: {fileID: 2635792138597815577}
   - component: {fileID: 6394853018937763810}
   - component: {fileID: 9023065051992888440}
-  - component: {fileID: -8683894657567677479}
+  - component: {fileID: 5381924760688627101}
   m_Layer: 0
-  m_Name: Router
+  m_Name: OverflowGate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -65,7 +65,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 7fc52494d78448e4982b8311b18231e3, type: 2}
+  - {fileID: 2100000, guid: 586fb418abb7da641a4662788656d0d5, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -87,7 +87,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &-8683894657567677479
+--- !u!114 &5381924760688627101
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -96,6 +96,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3907034167024044332}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2be247599ed1a6f45abf5450cad26c27, type: 3}
+  m_Script: {fileID: 11500000, guid: 3c6623df16f927840820cc1de3f0cb9a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Mode: 0

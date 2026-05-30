@@ -150,8 +150,7 @@ namespace MokoIndustry.Logistics
                     var dir = BeltLookup[e].Direction;
 
                     port.OutputMask = Direction4Extensions.Bit((int)dir);
-                    port.InputMask = Direction4Extensions.Bit(
-                        (int)Direction4Extensions.Opposite(dir));
+                    port.InputMask = Direction4Extensions.Except(dir); ;
                 }
                 else if (RouterLookup.HasComponent(e))
                 {

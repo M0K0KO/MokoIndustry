@@ -378,7 +378,6 @@ namespace MokoIndustry.Belt
 
             var incomingDir = Direction4Extensions.Opposite(sourceOutputDir);
 
-            UnityEngine.Debug.Log($"IncomingDirecion : {incomingDir}, DestInputMask : {dest.InputMask}");
             return Direction4Extensions.Has(dest.InputMask, (int)incomingDir);
         }
 

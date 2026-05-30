@@ -47,7 +47,7 @@ namespace MokoIndustry.Belt
                                     >= BeltConstants.MaxPosition,
                 CanAcceptIn = len < BeltConstants.Capacity &&
                                 minPos >= BeltConstants.ItemSpace,
-                InputMask = Direction4Extensions.Bit(Direction4Extensions.Opposite(belt.Direction)),
+                InputMask = Direction4Extensions.Except(belt.Direction),
                 OutputMask = Direction4Extensions.Bit(belt.Direction),
 
                 // belt fields

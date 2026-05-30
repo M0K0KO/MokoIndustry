@@ -47,6 +47,8 @@ namespace MokoIndustry.Foundation.Input
             _inputActions.Gameplay.SelectMiner.performed += OnSelectMinerPerformed;
             _inputActions.Gameplay.SelectSmelter.performed += OnSelectSmelterPerformed;
             _inputActions.Gameplay.SelectAssembler.performed += OnSelectAssemblerPerformed;
+            _inputActions.Gameplay.SelectOverflowGate.performed += OnSelectOverflowGatePerformed;
+            _inputActions.Gameplay.SelectUnderflowGate.performed += OnSelectUnderflowGatePerformed;
             _inputActions.Gameplay.Rotate.performed += OnRotatePerformed;
 
             _inputActions.Gameplay.DebugInject.performed += OnDebugInjectPerformed;
@@ -99,6 +101,8 @@ namespace MokoIndustry.Foundation.Input
                 _inputActions.Gameplay.SelectMiner.performed -= OnSelectMinerPerformed;
                 _inputActions.Gameplay.SelectSmelter.performed -= OnSelectSmelterPerformed;
                 _inputActions.Gameplay.SelectAssembler.performed -= OnSelectAssemblerPerformed;
+                _inputActions.Gameplay.SelectOverflowGate.performed -= OnSelectOverflowGatePerformed;
+                _inputActions.Gameplay.SelectUnderflowGate.performed -= OnSelectUnderflowGatePerformed;
                 _inputActions.Gameplay.Rotate.performed -= OnRotatePerformed;
 
                 _inputActions.Gameplay.DebugInject.performed -= OnDebugInjectPerformed;
@@ -173,6 +177,12 @@ namespace MokoIndustry.Foundation.Input
 
         private void OnSelectAssemblerPerformed(InputAction.CallbackContext ctx)
             => currentBuilding = BuildingType.Assembler;
+
+        private void OnSelectOverflowGatePerformed(InputAction.CallbackContext ctx)
+            => currentBuilding = BuildingType.OverflowGate;
+
+        private void OnSelectUnderflowGatePerformed(InputAction.CallbackContext ctx)
+            => currentBuilding = BuildingType.UnderflowGate;
 
         private void OnRotatePerformed(InputAction.CallbackContext ctx)
             => currentDirection = (Direction4)(((byte)currentDirection + 1) & 0b11);

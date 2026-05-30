@@ -9,5 +9,7 @@ namespace MokoIndustry.Foundation.Common
         Miner = 4,
         Smelter = 5,
         Assembler = 6,
+        OverflowGate = 7,
+        UnderflowGate = 8,
     }
 }

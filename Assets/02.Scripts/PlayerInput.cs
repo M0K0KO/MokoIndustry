@@ -174,6 +174,24 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
+                    ""name"": ""SelectOverflowGate"",
+                    ""type"": ""Button"",
+                    ""id"": ""63da4151-13ba-4593-b9fb-8b41299ccecc"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SelectUnderflowGate"",
+                    ""type"": ""Button"",
+                    ""id"": ""d4287f0f-92fc-4022-96c3-eeadf2b35417"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""Rotate"",
                     ""type"": ""Button"",
                     ""id"": ""3e0e285c-33c1-4acd-a5fc-1f9cd7f1fc04"",
@@ -313,6 +331,28 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""SelectAssembler"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""fbdebd7a-7a82-41f7-80f2-ec362fce5125"",
+                    ""path"": ""<Keyboard>/7"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SelectOverflowGate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3eea41fb-fbca-492c-ae32-e1fd9966873e"",
+                    ""path"": ""<Keyboard>/8"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SelectUnderflowGate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -330,6 +370,8 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_Gameplay_SelectMiner = m_Gameplay.FindAction("SelectMiner", throwIfNotFound: true);
         m_Gameplay_SelectSmelter = m_Gameplay.FindAction("SelectSmelter", throwIfNotFound: true);
         m_Gameplay_SelectAssembler = m_Gameplay.FindAction("SelectAssembler", throwIfNotFound: true);
+        m_Gameplay_SelectOverflowGate = m_Gameplay.FindAction("SelectOverflowGate", throwIfNotFound: true);
+        m_Gameplay_SelectUnderflowGate = m_Gameplay.FindAction("SelectUnderflowGate", throwIfNotFound: true);
         m_Gameplay_Rotate = m_Gameplay.FindAction("Rotate", throwIfNotFound: true);
         m_Gameplay_DebugInject = m_Gameplay.FindAction("DebugInject", throwIfNotFound: true);
     }
@@ -421,6 +463,8 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_SelectMiner;
     private readonly InputAction m_Gameplay_SelectSmelter;
     private readonly InputAction m_Gameplay_SelectAssembler;
+    private readonly InputAction m_Gameplay_SelectOverflowGate;
+    private readonly InputAction m_Gameplay_SelectUnderflowGate;
     private readonly InputAction m_Gameplay_Rotate;
     private readonly InputAction m_Gameplay_DebugInject;
     /// <summary>
@@ -470,6 +514,14 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/SelectAssembler".
         /// </summary>
         public InputAction @SelectAssembler => m_Wrapper.m_Gameplay_SelectAssembler;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/SelectOverflowGate".
+        /// </summary>
+        public InputAction @SelectOverflowGate => m_Wrapper.m_Gameplay_SelectOverflowGate;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/SelectUnderflowGate".
+        /// </summary>
+        public InputAction @SelectUnderflowGate => m_Wrapper.m_Gameplay_SelectUnderflowGate;
         /// <summary>
         /// Provides access to the underlying input action "Gameplay/Rotate".
         /// </summary>
@@ -531,6 +583,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @SelectAssembler.started += instance.OnSelectAssembler;
             @SelectAssembler.performed += instance.OnSelectAssembler;
             @SelectAssembler.canceled += instance.OnSelectAssembler;
+            @SelectOverflowGate.started += instance.OnSelectOverflowGate;
+            @SelectOverflowGate.performed += instance.OnSelectOverflowGate;
+            @SelectOverflowGate.canceled += instance.OnSelectOverflowGate;
+            @SelectUnderflowGate.started += instance.OnSelectUnderflowGate;
+            @SelectUnderflowGate.performed += instance.OnSelectUnderflowGate;
+            @SelectUnderflowGate.canceled += instance.OnSelectUnderflowGate;
             @Rotate.started += instance.OnRotate;
             @Rotate.performed += instance.OnRotate;
             @Rotate.canceled += instance.OnRotate;
@@ -575,6 +633,12 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @SelectAssembler.started -= instance.OnSelectAssembler;
             @SelectAssembler.performed -= instance.OnSelectAssembler;
             @SelectAssembler.canceled -= instance.OnSelectAssembler;
+            @SelectOverflowGate.started -= instance.OnSelectOverflowGate;
+            @SelectOverflowGate.performed -= instance.OnSelectOverflowGate;
+            @SelectOverflowGate.canceled -= instance.OnSelectOverflowGate;
+            @SelectUnderflowGate.started -= instance.OnSelectUnderflowGate;
+            @SelectUnderflowGate.performed -= instance.OnSelectUnderflowGate;
+            @SelectUnderflowGate.canceled -= instance.OnSelectUnderflowGate;
             @Rotate.started -= instance.OnRotate;
             @Rotate.performed -= instance.OnRotate;
             @Rotate.canceled -= instance.OnRotate;
@@ -684,6 +748,20 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSelectAssembler(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SelectOverflowGate" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSelectOverflowGate(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SelectUnderflowGate" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSelectUnderflowGate(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Rotate" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

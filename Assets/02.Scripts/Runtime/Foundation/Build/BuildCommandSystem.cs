@@ -95,6 +95,8 @@ namespace MokoIndustry.Foundation.Build
                 BuildingType.Miner => registry.MinerPrefab,
                 BuildingType.Smelter => registry.SmelterPrefab,
                 BuildingType.Assembler => registry.AssemblerPrefab,
+                BuildingType.OverflowGate => registry.OverflowGatePrefab,
+                BuildingType.UnderflowGate => registry.UnderflowGatePrefab,
                 _ => Entity.Null,
             };
             if (prefab == Entity.Null) return;

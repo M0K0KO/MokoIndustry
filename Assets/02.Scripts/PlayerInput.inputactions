@@ -88,6 +88,24 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "SelectOverflowGate",
+                    "type": "Button",
+                    "id": "63da4151-13ba-4593-b9fb-8b41299ccecc",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "SelectUnderflowGate",
+                    "type": "Button",
+                    "id": "d4287f0f-92fc-4022-96c3-eeadf2b35417",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Rotate",
                     "type": "Button",
                     "id": "3e0e285c-33c1-4acd-a5fc-1f9cd7f1fc04",
@@ -225,6 +243,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "SelectAssembler",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "fbdebd7a-7a82-41f7-80f2-ec362fce5125",
+                    "path": "<Keyboard>/7",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "SelectOverflowGate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3eea41fb-fbca-492c-ae32-e1fd9966873e",
+                    "path": "<Keyboard>/8",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "SelectUnderflowGate",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -10,6 +10,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using static UnityEngine.EventSystems.EventTrigger;
 
 namespace MokoIndustry.Logistics
 {
@@ -196,17 +197,22 @@ namespace MokoIndustry.Logistics
                 }
                 else if (GateLookup.HasComponent(e))
                 {
-                    var dir = GateLookup[e].Direction;
-                    byte backBit = Direction4Extensions.Bit(Direction4Extensions.Opposite(dir));
-                    byte frontBit = Direction4Extensions.Bit(dir);
-                    byte leftBit = Direction4Extensions.Bit(Direction4Extensions.RotateCCW(dir));
-                    byte rightBit = Direction4Extensions.Bit(Direction4Extensions.RotateCW(dir));
+                    var gate = GateLookup[e];
+                    int frontDir = (int)gate.Direction;
+                    int backDir = (int)Direction4Extensions.Opposite(gate.Direction);
+                    int leftDir = (int)Direction4Extensions.RotateCCW(gate.Direction);
+                    int rightDir = (int)Direction4Extensions.RotateCW(gate.Direction);
+
+                    byte backBit = (byte)(1 << backDir);
+                    byte frontBit = (byte)(1 << frontDir);
+                    byte leftBit = (byte)(1 << leftDir);
+                    byte rightBit = (byte)(1 << rightDir);
 
                     port = new IOPort
                     {
                         InputMask = backBit,
                         OutputMask = (byte)(frontBit | leftBit | rightBit),
-                        AcceptFilter = 0xFF
+                        AcceptFilter = 0
                     };
                 }
                 else if (MachineRecipeRefLookup.HasComponent(e))

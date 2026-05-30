@@ -46,6 +46,7 @@ namespace MokoIndustry.Foundation.Input
             _inputActions.Gameplay.SelectRouter.performed += OnSelectRouterPerformed;
             _inputActions.Gameplay.SelectMiner.performed += OnSelectMinerPerformed;
             _inputActions.Gameplay.SelectSmelter.performed += OnSelectSmelterPerformed;
+            _inputActions.Gameplay.SelectAssembler.performed += OnSelectAssemblerPerformed;
             _inputActions.Gameplay.Rotate.performed += OnRotatePerformed;
 
             _inputActions.Gameplay.DebugInject.performed += OnDebugInjectPerformed;
@@ -97,6 +98,7 @@ namespace MokoIndustry.Foundation.Input
                 _inputActions.Gameplay.SelectRouter.performed -= OnSelectRouterPerformed;
                 _inputActions.Gameplay.SelectMiner.performed -= OnSelectMinerPerformed;
                 _inputActions.Gameplay.SelectSmelter.performed -= OnSelectSmelterPerformed;
+                _inputActions.Gameplay.SelectAssembler.performed -= OnSelectAssemblerPerformed;
                 _inputActions.Gameplay.Rotate.performed -= OnRotatePerformed;
 
                 _inputActions.Gameplay.DebugInject.performed -= OnDebugInjectPerformed;
@@ -168,6 +170,9 @@ namespace MokoIndustry.Foundation.Input
 
         private void OnSelectSmelterPerformed(InputAction.CallbackContext ctx)
             => currentBuilding = BuildingType.Smelter;
+
+        private void OnSelectAssemblerPerformed(InputAction.CallbackContext ctx)
+            => currentBuilding = BuildingType.Assembler;
 
         private void OnRotatePerformed(InputAction.CallbackContext ctx)
             => currentDirection = (Direction4)(((byte)currentDirection + 1) & 0b11);

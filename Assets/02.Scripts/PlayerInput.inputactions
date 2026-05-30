@@ -79,6 +79,15 @@
                     "initialStateCheck": false
                 },
                 {
+                    "name": "SelectAssembler",
+                    "type": "Button",
+                    "id": "f1e04641-ac03-4467-855f-6e066d6303de",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
                     "name": "Rotate",
                     "type": "Button",
                     "id": "3e0e285c-33c1-4acd-a5fc-1f9cd7f1fc04",
@@ -205,6 +214,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "SelectSmelter",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f11e05cd-31ed-4698-9281-41e1da67a6a8",
+                    "path": "<Keyboard>/6",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "SelectAssembler",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

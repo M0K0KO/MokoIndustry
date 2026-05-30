@@ -165,6 +165,15 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
+                    ""name"": ""SelectAssembler"",
+                    ""type"": ""Button"",
+                    ""id"": ""f1e04641-ac03-4467-855f-6e066d6303de"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
                     ""name"": ""Rotate"",
                     ""type"": ""Button"",
                     ""id"": ""3e0e285c-33c1-4acd-a5fc-1f9cd7f1fc04"",
@@ -293,6 +302,17 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
                     ""action"": ""SelectSmelter"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f11e05cd-31ed-4698-9281-41e1da67a6a8"",
+                    ""path"": ""<Keyboard>/6"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SelectAssembler"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -309,6 +329,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         m_Gameplay_SelectRouter = m_Gameplay.FindAction("SelectRouter", throwIfNotFound: true);
         m_Gameplay_SelectMiner = m_Gameplay.FindAction("SelectMiner", throwIfNotFound: true);
         m_Gameplay_SelectSmelter = m_Gameplay.FindAction("SelectSmelter", throwIfNotFound: true);
+        m_Gameplay_SelectAssembler = m_Gameplay.FindAction("SelectAssembler", throwIfNotFound: true);
         m_Gameplay_Rotate = m_Gameplay.FindAction("Rotate", throwIfNotFound: true);
         m_Gameplay_DebugInject = m_Gameplay.FindAction("DebugInject", throwIfNotFound: true);
     }
@@ -399,6 +420,7 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_SelectRouter;
     private readonly InputAction m_Gameplay_SelectMiner;
     private readonly InputAction m_Gameplay_SelectSmelter;
+    private readonly InputAction m_Gameplay_SelectAssembler;
     private readonly InputAction m_Gameplay_Rotate;
     private readonly InputAction m_Gameplay_DebugInject;
     /// <summary>
@@ -444,6 +466,10 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/SelectSmelter".
         /// </summary>
         public InputAction @SelectSmelter => m_Wrapper.m_Gameplay_SelectSmelter;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/SelectAssembler".
+        /// </summary>
+        public InputAction @SelectAssembler => m_Wrapper.m_Gameplay_SelectAssembler;
         /// <summary>
         /// Provides access to the underlying input action "Gameplay/Rotate".
         /// </summary>
@@ -502,6 +528,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @SelectSmelter.started += instance.OnSelectSmelter;
             @SelectSmelter.performed += instance.OnSelectSmelter;
             @SelectSmelter.canceled += instance.OnSelectSmelter;
+            @SelectAssembler.started += instance.OnSelectAssembler;
+            @SelectAssembler.performed += instance.OnSelectAssembler;
+            @SelectAssembler.canceled += instance.OnSelectAssembler;
             @Rotate.started += instance.OnRotate;
             @Rotate.performed += instance.OnRotate;
             @Rotate.canceled += instance.OnRotate;
@@ -543,6 +572,9 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
             @SelectSmelter.started -= instance.OnSelectSmelter;
             @SelectSmelter.performed -= instance.OnSelectSmelter;
             @SelectSmelter.canceled -= instance.OnSelectSmelter;
+            @SelectAssembler.started -= instance.OnSelectAssembler;
+            @SelectAssembler.performed -= instance.OnSelectAssembler;
+            @SelectAssembler.canceled -= instance.OnSelectAssembler;
             @Rotate.started -= instance.OnRotate;
             @Rotate.performed -= instance.OnRotate;
             @Rotate.canceled -= instance.OnRotate;
@@ -645,6 +677,13 @@ public partial class @PlayerInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSelectSmelter(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SelectAssembler" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSelectAssembler(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Rotate" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

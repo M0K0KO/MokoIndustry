@@ -94,6 +94,7 @@ namespace MokoIndustry.Foundation.Build
                 BuildingType.Router => registry.RouterPrefab,
                 BuildingType.Miner => registry.MinerPrefab,
                 BuildingType.Smelter => registry.SmelterPrefab,
+                BuildingType.Assembler => registry.AssemblerPrefab,
                 _ => Entity.Null,
             };
             if (prefab == Entity.Null) return;

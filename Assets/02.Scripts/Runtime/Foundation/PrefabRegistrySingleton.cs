@@ -9,6 +9,7 @@ namespace MokoIndustry.Foundation
         public Entity RouterPrefab;
         public Entity MinerPrefab;
         public Entity SmelterPrefab;
+        public Entity AssemblerPrefab;
         public Entity ItemRendererPrefab;
     }
 }

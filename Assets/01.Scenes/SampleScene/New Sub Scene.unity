@@ -212,6 +212,7 @@ MonoBehaviour:
   routerPrefab: {fileID: 3907034167024044332, guid: c81c6e973fd8f8548a6ac0f7a755935f, type: 3}
   minerPrefab: {fileID: 3907034167024044332, guid: a80b1c7123807f947a3a9db2784535b4, type: 3}
   smelterPrefab: {fileID: 3907034167024044332, guid: 0df4958aafd21d942b199a3baa050a87, type: 3}
+  assemblerPrefab: {fileID: 3907034167024044332, guid: cf74515f1ad306d43beaf59af5d4a23f, type: 3}
   itemRendererPrefab: {fileID: 7085548346591960084, guid: 607038c2d67dabf4aa7a4cbd39cff1f0, type: 3}
 --- !u!1 &757201701
 GameObject:

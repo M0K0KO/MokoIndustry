@@ -8,5 +8,6 @@ namespace MokoIndustry.Foundation.Common
         Router = 3,
         Miner = 4,
         Smelter = 5,
+        Assembler = 6,
     }
 }

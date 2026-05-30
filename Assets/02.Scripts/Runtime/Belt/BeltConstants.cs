@@ -11,5 +11,6 @@ namespace MokoIndustry.Belt
         public const byte SpeedPerTick = 16;
 
         public const byte RouterOutputInterval = MaxPosition / SpeedPerTick;
+        public const byte GateOutputInterval = MaxPosition / SpeedPerTick;
     }
 }

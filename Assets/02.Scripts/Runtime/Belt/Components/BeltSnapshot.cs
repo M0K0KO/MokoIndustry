@@ -29,6 +29,7 @@ namespace MokoIndustry.Belt
         public const byte KindBelt = 0;
         public const byte KindRouter = 1;
         public const byte KindMachine = 2;
+        public const byte KindGate = 3;
 
         public static BeltSnapshot From(Entity entity, in BeltSegment belt)
         {

@@ -6,7 +6,6 @@ using MokoIndustry.Foundation.Input;
 using MokoIndustry.Logistics;
 using MokoIndustry.Machine;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -24,6 +23,7 @@ namespace MokoIndustry.Belt
         private EntityQuery _beltQuery;
         private EntityQuery _routerQuery;
         private EntityQuery _machineQuery;
+        private EntityQuery _gateQuery;
 
         public void OnCreate(ref SystemState state)
         {
@@ -39,6 +39,10 @@ namespace MokoIndustry.Belt
                 .WithAll<MachineTag, MachineState, GridPosition, IOPort>()
                 .Build();
 
+            _gateQuery = SystemAPI.QueryBuilder()
+                .WithAll<GateTag, GateSegment, GridPosition, IOPort>()
+                .Build();
+
             state.RequireForUpdate<GridOccupancySingleton>();
         }
 
@@ -48,7 +52,8 @@ namespace MokoIndustry.Belt
             int beltCount = _beltQuery.CalculateEntityCount();
             int routerCount = _routerQuery.CalculateEntityCount();
             int machineCount = _machineQuery.CalculateEntityCount();
-            int total = beltCount + routerCount + machineCount;
+            int gateCount = _gateQuery.CalculateEntityCount();
+            int total = beltCount + routerCount + machineCount + gateCount;
             if (total == 0) return;
 
             var snapshots = new NativeArray<BeltSnapshot>(total, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
@@ -80,6 +85,13 @@ namespace MokoIndustry.Belt
                 IndexOffset = beltCount + routerCount,
             }.ScheduleParallel(_machineQuery, h1b);
 
+            var h1d = new GateSnapshotJob
+            {
+                Snapshots = snapshots,
+                CellToIndex = cellToIndex.AsParallelWriter(),
+                IndexOffset = beltCount + routerCount + machineCount,
+            }.ScheduleParallel(_gateQuery, h1c);
+
 
 
 
@@ -105,6 +117,14 @@ namespace MokoIndustry.Belt
                 Intents = intents.AsParallelWriter(),
                 IndexOffset = beltCount + routerCount,
             }.ScheduleParallel(_machineQuery, h2b);
+
+            var h2d = new GateIntentJob
+            {
+                Snapshots = snapshots,
+                CellToIndex = cellToIndex,
+                Intents = intents.AsParallelWriter(),
+                IndexOffset = beltCount + routerCount + machineCount,
+            }.ScheduleParallel(_gateQuery, h2c);
 
 
 
@@ -143,23 +163,33 @@ namespace MokoIndustry.Belt
                 AcceptedIn = acceptedIn,
             }.ScheduleParallel(_machineQuery, h4b);
 
-            h4c.Complete();
+            var h4d = new GateApplyJob
+            {
+                CellToIndex = cellToIndex,
+                AcceptedOut = acceptedOut,
+                AcceptedIn = acceptedIn,
+                AcceptedOutDir = acceptedOutDir,
+            }.ScheduleParallel(_gateQuery, h4c);
 
-            var d1 = snapshots.Dispose(h4c);
-            var d2 = cellToIndex.Dispose(h4c);
-            var d3 = intents.Dispose(h4c);
-            var d4 = acceptedOut.Dispose(h4c);
-            var d5 = acceptedIn.Dispose(h4c);
-            var d6 = acceptedInY.Dispose(h4c);
-            var d7 = acceptedOutDir.Dispose(h4c);
+            h4d.Complete();
+
+            var d1 = snapshots.Dispose(h4d);
+            var d2 = cellToIndex.Dispose(h4d);
+            var d3 = intents.Dispose(h4d);
+            var d4 = acceptedOut.Dispose(h4d);
+            var d5 = acceptedIn.Dispose(h4d);
+            var d6 = acceptedInY.Dispose(h4d);
+            var d7 = acceptedOutDir.Dispose(h4d);
+            var d8 = acceptedOutDir.Dispose(h4d);
 
             state.Dependency = JobHandle.CombineDependencies(
                 JobHandle.CombineDependencies(d1, d2, d3),
                 JobHandle.CombineDependencies(d4, d5, d6),
-                d7
+                JobHandle.CombineDependencies(d7, d8)
             );
         }
 
+        #region SNAPSHOT JOBS
         [BurstCompile]
         private partial struct BeltSnapshotJob : IJobEntity
         {
@@ -243,7 +273,39 @@ namespace MokoIndustry.Belt
             }
         }
 
+        [BurstCompile]
+        private partial struct GateSnapshotJob : IJobEntity
+        {
+            [NativeDisableParallelForRestriction] public NativeArray<BeltSnapshot> Snapshots;
+            public NativeParallelHashMap<int2, int>.ParallelWriter CellToIndex;
+            public int IndexOffset;
 
+            void Execute(
+                [EntityIndexInQuery] int localIdx,
+                Entity entity,
+                in GateSegment gate,
+                in IOPort port,
+                in GridPosition gridPos)
+            {
+                int idx = IndexOffset + localIdx;
+                byte len = (byte)gate.Buffer.Length;
+
+                Snapshots[idx] = new BeltSnapshot
+                {
+                    Entity = entity,
+                    Kind = BeltSnapshot.KindGate,
+                    HeadItem = (len == 0) ? ItemId.None : (ItemId)gate.Buffer[0],
+                    ReadyToOutput = len > 0 && gate.OutputCooldown == 0 && port.OutputMask != 0,
+                    CanAcceptIn = len < GateSegment.Capacity && port.InputMask != 0,
+                    InputMask = port.InputMask,
+                    OutputMask = port.OutputMask,
+                };
+                CellToIndex.TryAdd(gridPos.Cell, idx);
+            }
+        }
+        #endregion
+
+        #region INTENT JOBS
         [BurstCompile]
         private partial struct BeltIntentJob : IJobEntity
         {
@@ -366,6 +428,69 @@ namespace MokoIndustry.Belt
             }
         }
 
+        [BurstCompile]
+        private partial struct GateIntentJob : IJobEntity
+        {
+            [ReadOnly] public NativeArray<BeltSnapshot> Snapshots;
+            [ReadOnly] public NativeParallelHashMap<int2, int> CellToIndex;
+            public NativeList<MoveIntent>.ParallelWriter Intents;
+            public int IndexOffset;
+
+            void Execute(
+                [EntityIndexInQuery] int localIdx,
+                in GateSegment gate,
+                in IOPort port,
+                in GridPosition gridPos)
+            {
+                int idx = IndexOffset + localIdx;
+                var src = Snapshots[idx];
+                if (!src.ReadyToOutput) return;
+
+                int frontDir = (int)gate.Direction;
+                int leftDir = (int)Direction4Extensions.RotateCCW(gate.Direction);
+                int rightDir = (int)Direction4Extensions.RotateCW(gate.Direction);
+
+                int d1, d2, d3;
+                if (gate.Mode == GateMode.Overflow)
+                {
+                    d1 = frontDir;
+                    d2 = (gate.LastSideUsed == 0) ? rightDir : leftDir;
+                    d3 = (gate.LastSideUsed == 0) ? leftDir : rightDir;
+                }
+                else
+                {
+                    d1 = (gate.LastSideUsed == 0) ? rightDir : leftDir;
+                    d2 = (gate.LastSideUsed == 0) ? leftDir : rightDir;
+                    d3 = frontDir;
+                }
+
+                if (TryEmit(d1, idx, in src, in gridPos, in port)) return;
+                if (TryEmit(d2, idx, in src, in gridPos, in port)) return;
+                if (TryEmit(d3, idx, in src, in gridPos, in port)) return;
+            }
+
+            private bool TryEmit(int d, int idx, in BeltSnapshot src, in GridPosition gridPos, in IOPort port)
+            {
+                if (!Direction4Extensions.Has(port.OutputMask, d)) return false;
+                int2 nextCell = gridPos.Cell + Direction4Extensions.ToOffset((Direction4)d);
+                if (!CellToIndex.TryGetValue(nextCell, out int destIdx)) return false;
+                if (destIdx == idx) return false;
+
+                var dest = Snapshots[destIdx];
+                if (!CanMoveInto(in dest, src.HeadItem, (Direction4)d)) return false;
+
+                Intents.AddNoResize(new MoveIntent
+                {
+                    SourceIdx = idx,
+                    DestIdx = destIdx,
+                    Item = src.HeadItem,
+                    Priority = (byte)d,
+                    SourceChosenDir = (byte)d,
+                });
+                return true;
+            }
+        }
+
         private static bool CanMoveInto(in BeltSnapshot dest, ItemId item, Direction4 sourceOutputDir)
         {
             if (!dest.CanAcceptIn) return false;
@@ -380,7 +505,9 @@ namespace MokoIndustry.Belt
 
             return Direction4Extensions.Has(dest.InputMask, (int)incomingDir);
         }
+        #endregion
 
+        #region RESOLVE JOBS
         [BurstCompile]
         private partial struct ResolveJob : IJob
         {
@@ -424,7 +551,9 @@ namespace MokoIndustry.Belt
                 return a.SourceIdx.CompareTo(b.SourceIdx); // tie breaker
             }
         }
+        #endregion
 
+        #region APPLY JOBS
         [BurstCompile]
         private partial struct BeltApplyJob : IJobEntity
         {
@@ -565,5 +694,43 @@ namespace MokoIndustry.Belt
                 }
             }
         }
+
+        [BurstCompile]
+        private partial struct GateApplyJob : IJobEntity
+        {
+            [ReadOnly] public NativeParallelHashMap<int2, int> CellToIndex;
+            [ReadOnly] public NativeArray<byte> AcceptedOut;
+            [ReadOnly] public NativeArray<ItemId> AcceptedIn;
+            [ReadOnly] public NativeArray<byte> AcceptedOutDir;
+
+            void Execute(ref GateSegment gate, in GridPosition gridPos)
+            {
+                if (gate.OutputCooldown > 0) gate.OutputCooldown--;
+
+                if (!CellToIndex.TryGetValue(gridPos.Cell, out int idx)) return;
+
+                bool outgoing = AcceptedOut[idx] != 0;
+                ItemId incoming = AcceptedIn[idx];
+
+                if (outgoing && gate.Buffer.Length > 0)
+                {
+                    gate.Buffer.RemoveAt(0);
+                    int chosenDir = AcceptedOutDir[idx];
+
+                    int leftDir = (int)Direction4Extensions.RotateCCW(gate.Direction);
+                    int rightDir = (int)Direction4Extensions.RotateCW(gate.Direction);
+                    if (chosenDir == leftDir) gate.LastSideUsed = 0;
+                    else if (chosenDir == rightDir) gate.LastSideUsed = 1;
+
+                    gate.OutputCooldown = BeltConstants.GateOutputInterval;
+                }
+
+                if (incoming != ItemId.None && gate.Buffer.Length < GateSegment.Capacity)
+                {
+                    gate.Buffer.Add((byte)incoming);
+                }
+            }
+        }
+        #endregion
     }
 }

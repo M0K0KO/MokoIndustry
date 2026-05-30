@@ -11,6 +11,8 @@ namespace MokoIndustry.Logistics
 
     public struct GateSegment : IComponentData
     {
+        public const int Capacity = 4;
+
         public FixedList32Bytes<byte> Buffer;
         public byte OutputCooldown;
         public GateMode Mode;
